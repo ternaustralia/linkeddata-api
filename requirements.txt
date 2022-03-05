@@ -1,0 +1,2 @@
+git+https://bitbucket.org/terndatateam/flask_tern.git@master
+pydantic

@@ -1,0 +1,61 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.117.1/containers/docker-existing-dockerfile
+{
+	"name": "Python 3 (debian) linkeddata_api",
+	// build instructions
+	"build": {
+		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
+		"dockerfile": "Dockerfile",
+		// Sets the run context to one level up instead of the .devcontainer folder.
+		"context": "..",
+		// docker build args inf any
+		// "args": {"VAR": "VALUE"}
+	},
+	// Set *default* container specific settings.json values on container create.
+	"settings": {
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": true
+		},
+		"editor.formatOnSave": true,
+		"python.formatting.provider": "black",
+		"python.formatting.blackArgs": [
+			"--line-length",
+			"120"
+		],
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": false,
+		"python.linting.flake8Enabled": true,
+		"python.linting.flake8Args": [
+			"--max-line-length",
+			"120",
+		],
+		"python.pythonPath": "/opt/venv/bin/python",
+		"python.testing.pytestEnabled": true,
+		"python.testing.pytestArgs": [
+			"tests"
+		],
+		"python.testing.unittestEnabled": false,
+		"python.testing.nosetestsEnabled": false,
+		// see: https://github.com/microsoft/python-language-server/blob/master/TROUBLESHOOTING.md#completions-do-not-update-andor-import-is-still-being-reported-as-unresolved-after-pip-install
+		// "python.analysis.watchSearchPaths": true,
+	},
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-python.python",
+		"ms-python.vscode-pylance",
+		"visualstudioexptteam.vscodeintellicode",
+		"lextudio.restructuredtext",
+		"gruntfuggly.todo-tree"
+	],
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [5000],
+	// Uncomment the next line to run commands after the container is created - for example installing git.
+	// "postCreateCommand": "apt-get update && apt-get install -y git",
+	"postCreateCommand": "pip install -r requirements.txt; pip install -e .[testing,docs]",
+	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
+	// "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-in-docker.
+	// "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
+	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode",
+}
