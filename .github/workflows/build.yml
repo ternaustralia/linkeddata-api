@@ -73,7 +73,7 @@ jobs:
       - name: Set version
         run: export VERSION=${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
 
-      - name Build project
+      - name: Build project
         run: python setup.py bdist_wheel
 
       - name: Log in to GitHub Container Registry
