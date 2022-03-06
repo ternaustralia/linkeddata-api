@@ -1,0 +1,36 @@
+name: Run tests
+
+on:
+  # Make workflow callable.
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: pip install -r requirements-test.txt
+
+      - name: Install project dependencies
+        run: pip install requirements.txt
+
+      - name: Install project
+        run: pip install .
+
+      - name: Run tests
+        run: pytest
