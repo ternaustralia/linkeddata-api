@@ -10,9 +10,16 @@ requires = [
     "Flask",
     "Flask-Cors",
     "flask_tern",
+    "pydantic",
+    "flask_migrate",
+    "itsdangerous==2.0.1",
 ]
 
-tests_require = [line.strip() for line in open(os.path.join(here, "requirements-test.txt")) if not line.startswith("#")]
+tests_require = [
+    line.strip()
+    for line in open(os.path.join(here, "requirements-test.txt"))
+    if not line.startswith("#")
+]
 
 docs_require = [
     "sphinx",
