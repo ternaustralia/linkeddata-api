@@ -1,8 +1,17 @@
 openapi: "3.0.0"
 
 info:
-  title: Example
+  title: TERN's Linked Data Services API
+  description: A set of web APIs to power TERN's Linked Data Services website.
   version: "1.0"
+  license:
+    name: Creative Commons 4.0
+    url: https://creativecommons.org/version4
+  termsOfService: https://www.tern.org.au/datalicence/
+  contact:
+    email: esupport@tern.org.au
+    name: TERN eSupport
+    url: https://ternaus.atlassian.net/wiki/spaces/TERNSup/overview
 # servers:
 #   # base path for api
 #   # e.g. swagger ui will be at /api/v1.0/ui/
