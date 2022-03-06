@@ -70,6 +70,12 @@ jobs:
           find: "sha-"
           replace: dev.${{ steps.commitscount.outputs.value }}.
 
+      - name: Set version
+        run: export VERSION=${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
+
+      - name Build project
+        run: python setup.py bdist_wheel
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v1
         with:
@@ -83,5 +89,5 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
           build-args: |
-            REACT_APP_GIT_VERSION=${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
+            VERSION=${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
           labels: ${{ steps.metadata.outputs.labels }}
