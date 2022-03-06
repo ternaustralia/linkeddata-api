@@ -7,7 +7,7 @@ from linkeddata_api.pydantic_jsonify import jsonify
 
 
 @bp.route("/classes/flat")
-@openapi.validate()
+@openapi.validate(validate_response=False)
 def classes_flat_get():
     # TODO: add log audit.
 
