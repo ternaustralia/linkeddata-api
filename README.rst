@@ -1,6 +1,6 @@
 
-linkeddata_api
-==============
+TERN Linked Data Services API
+=============================
 
 A set of web APIs to power TERN's `Linked Data Services <https://linkeddata.tern.org.>`_ website.
 
@@ -11,7 +11,7 @@ A set of web APIs to power TERN's `Linked Data Services <https://linkeddata.tern
 This project was bootstrapped with TERN's `flask-cookiecutter <https://bitbucket.org/terndatateam/flask-cookiecutter/src/master/>`_.
 
 Installation
-============
+------------
 
 .. code:: bash
 
@@ -19,7 +19,7 @@ Installation
 
 
 Configuration
-=============
+-------------
 
 The application can configured like any other Flask application.
 
@@ -35,7 +35,7 @@ Flask-Cors: https://flask-cors.readthedocs.io/en/latest/
 
 
 Development
-===========
+-----------
 
 Clone the source code and cd into the directory of your local copy.
 You may want to adapt settings in .flaskenv
