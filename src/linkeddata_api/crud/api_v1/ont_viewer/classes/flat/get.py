@@ -67,7 +67,7 @@ def get(ontology_id: str) -> List[flat.ClassItem]:
 
     try:
         r.raise_for_status()
-    except requests.HTTPError:
+    except requests.RequestException:
         raise HTTPException(
             description=r.text, response=Response(r.text, status=r.status_code)
         )
