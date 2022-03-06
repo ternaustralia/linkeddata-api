@@ -2,9 +2,11 @@
 linkeddata_api
 ==============
 
-TODO: update this !!!!!
+A set of web APIs to power TERN's `Linked Data Services <https://linkeddata.tern.org.>`_ website.
 
-Quick intro of project goes here.
+..
+
+    API docs at: https://linkeddata.tern.org.au/api
 
 Installation
 ============
