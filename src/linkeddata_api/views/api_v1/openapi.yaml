@@ -50,6 +50,8 @@ security:
 paths:
   /classes/flat:
     get:
+      tags:
+        - Ontology viewer
       summary: Get a flat list of classes
       description: Get a flat list of classes ordered by label.
       parameters:
