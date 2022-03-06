@@ -57,6 +57,20 @@ security:
   - ApiKeyAuth: []
 
 paths:
+  /version:
+    get:
+      tags:
+        - General
+      summary: Application version
+      description: Get the application's version
+      responses:
+        "200":
+          description: The application's version.
+          content:
+            plain/text:
+              schema:
+                type: string
+
   /classes/flat:
     get:
       tags:
