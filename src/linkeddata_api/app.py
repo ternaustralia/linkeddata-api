@@ -44,6 +44,10 @@ def create_app(config=None) -> Flask:
     #################################################################
     from flask_tern import cache
 
+    # Uses a local python dictionary for caching. This is not really thread safe.
+    # TODO: if other backends are available in the future, make it configurable via env vars.
+    app.config["CACHE_TYPE"] = "SimpleCache"
+    app.config["CACHE_DEFAULT_TIMEOUT"] = 60
     cache.init_app(app)
 
     #################################################################

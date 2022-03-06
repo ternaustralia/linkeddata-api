@@ -4,6 +4,7 @@ import requests
 from jinja2 import Template
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
+from flask_tern.cache import cache
 
 from linkeddata_api.schemas.api_v1.ont_viewer.classes import flat
 
@@ -55,6 +56,7 @@ ORDER BY ?label
 )
 
 
+@cache.memoize()
 def get(ontology_id: str) -> List[flat.ClassItem]:
     try:
         mapping = ontology_id_mapping[ontology_id]
