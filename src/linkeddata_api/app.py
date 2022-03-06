@@ -2,8 +2,9 @@ import os
 import os.path
 
 from flask import Flask, redirect, url_for
+
 # from flask_cors import CORS
-# from flask_migrate import Migrate
+from flask_migrate import Migrate
 from flask_tern import logging as app_logging
 from flask_tern.utils.config import load_settings
 
@@ -52,8 +53,8 @@ def create_app(config=None) -> Flask:
     from flask_tern import db
 
     # api.init_app(app)
-    # db.init_app(app)
-    # Migrate(app, db.db, directory=os.path.join(app.config.root_path, "migrations"))
+    db.init_app(app)
+    Migrate(app, db.db, directory=os.path.join(app.config.root_path, "migrations"))
 
     ###############################################
     # Session setup
