@@ -1,3 +1,4 @@
+from flask import request
 from flask_tern import openapi
 from flask_tern.logging import create_audit_event, log_audit
 
@@ -11,7 +12,7 @@ from linkeddata_api.pydantic_jsonify import jsonify
 def classes_flat_get():
     # TODO: add log audit.
 
-    ontology_id = "tern-ontology"
+    ontology_id = request.args.get("ontology_id")
     classes = ont_viewer.classes.flat.get(ontology_id)
 
     return jsonify(classes)

@@ -56,7 +56,14 @@ ORDER BY ?label
 
 
 def get(ontology_id: str) -> List[flat.ClassItem]:
-    mapping = ontology_id_mapping[ontology_id]
+    try:
+        mapping = ontology_id_mapping[ontology_id]
+    except KeyError:
+        description = f"Unknown ontology ID '{ontology_id}'. Valid ontology IDs: {list(ontology_id_mapping.keys())}"
+        raise HTTPException(
+            description=description, response=Response(description, status=404)
+        )
+
     query = query_template.render(named_graph=mapping["named_graph"])
     headers = {
         "accept": "application/sparql-results+json",
