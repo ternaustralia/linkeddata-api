@@ -10,7 +10,7 @@ env:
 
 jobs:
   test:
-    uses: ternaustralia/linkeddata-api/.github/workflows/test.yml@master
+    uses: ternaustralia/linkeddata-api/.github/workflows/test.yml@main
 
   build:
     needs: test
