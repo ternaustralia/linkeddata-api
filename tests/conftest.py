@@ -19,10 +19,10 @@ def app():
         }
     )
     # setup db
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
-        # here we would set up initial data for all tests if needed
+    # with app.app_context():
+    #     db.drop_all()
+    #     db.create_all()
+    #     # here we would set up initial data for all tests if needed
 
     yield app
 
