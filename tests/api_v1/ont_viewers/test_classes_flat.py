@@ -7,3 +7,7 @@ def test_classes_flat(client: FlaskClient):
     )
     data = response.json
     assert len(data) >= 30
+
+
+# TODO: Test invalid ontology_id value returns correct response.
+# TODO: Test external request errors are raised and forwarded to client. Use pytest-mock here.
