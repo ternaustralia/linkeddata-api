@@ -72,8 +72,6 @@ jobs:
 
       - name: Build project
         run: python setup.py bdist_wheel
-        env:
-          VERSION: ${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v1
@@ -89,5 +87,5 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
           build-args: |
-            VERSION=${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
+            LINKEDDATA_API_VERSION=${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
           labels: ${{ steps.metadata.outputs.labels }}
