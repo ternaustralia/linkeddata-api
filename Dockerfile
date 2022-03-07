@@ -3,6 +3,9 @@ ARG ALPINE_VERSION=3.13
 # BUILD and install code
 FROM alpine:${ALPINE_VERSION} as builder
 
+ARG LINKEDDATA_API_VERSION
+ENV LINKEDDATA_API_VERSION=${LINKEDDATA_API_VERSION}
+
 # Install build dependencies
 RUN apk add --no-cache \
   git \
