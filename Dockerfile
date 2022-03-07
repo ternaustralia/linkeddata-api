@@ -49,6 +49,7 @@ RUN pip install --no-cache-dir /workspace/dist/*.whl
 # BUILD space optimised final image, based on installed code from builder
 FROM alpine:${ALPINE_VERSION} as runner
 
+ARG LINKEDDATA_API_VERSION
 ENV LINKEDDATA_API_VERSION=${LINKEDDATA_API_VERSION}
 
 # # create app user and group
