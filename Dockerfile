@@ -1,10 +1,8 @@
 ARG ALPINE_VERSION=3.13
+ARG LINKEDDATA_API_VERSION
 
 # BUILD and install code
 FROM alpine:${ALPINE_VERSION} as builder
-
-ARG LINKEDDATA_API_VERSION
-ENV LINKEDDATA_API_VERSION=${LINKEDDATA_API_VERSION}
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -50,6 +48,8 @@ RUN pip install --no-cache-dir /workspace/dist/*.whl
 
 # BUILD space optimised final image, based on installed code from builder
 FROM alpine:${ALPINE_VERSION} as runner
+
+ENV LINKEDDATA_API_VERSION=${LINKEDDATA_API_VERSION}
 
 # # create app user and group
 RUN addgroup -g 1000 linkeddata_api \
