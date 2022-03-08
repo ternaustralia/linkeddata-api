@@ -12,7 +12,7 @@ def test_data(app):
         models.db.session.commit()
 
 
-@pytest.mark.skip(reason="SQLAlchemy is not used in this project.")
+@pytest.mark.xfail(reason="SQLAlchemy is not used in this project.")
 def test_hello_get(client):
     response = client.get("/api/v1.0/example")
     assert response.json == {"counter": 1}
@@ -23,7 +23,7 @@ def test_hello_post_403(client):
     assert response.status_code == 403
 
 
-@pytest.mark.skip(reason="AttributeError in flask_tern.auth.user.User")
+@pytest.mark.xfail(reason="SQLAlchemy is not used in this project.")
 def test_hello_post_200(client, test_data):
     response = client.post(
         "/api/v1.0/example/param1",

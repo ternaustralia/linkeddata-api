@@ -22,7 +22,6 @@ def test_whoami_fail(client):
     assert response.status_code == 403
 
 
-@pytest.mark.skip(reason="AttributeError in flask_tern.auth.user.User")
 def test_whoami_ok(client):
     response = client.get(
         "/api/whoami",
@@ -34,8 +33,11 @@ def test_whoami_ok(client):
     )
     assert response.status_code == 200
     assert response.json == {
+        "claims": {},
         "email": "user@example.com",
+        "email_verified": False,
         "id": "user",
         "name": "user",
         "roles": ["user"],
+        "scopes": [],
     }

@@ -17,4 +17,4 @@ def home():
 @require_user
 def whoami():
     """Check login status and return user info if authenticated."""
-    return jsonify(dict(current_user))
+    return jsonify(current_user._get_current_object())
