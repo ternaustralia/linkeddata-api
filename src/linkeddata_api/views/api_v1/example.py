@@ -29,6 +29,6 @@ def hello_post(name):
         {
             "name": name,
             "counter": counter.count,
-            "current_user": dict(current_user),
+            "current_user": current_user._get_current_object(),
         }
     )
