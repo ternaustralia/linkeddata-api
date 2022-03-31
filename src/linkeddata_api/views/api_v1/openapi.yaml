@@ -71,7 +71,7 @@ paths:
               schema:
                 type: string
 
-  /classes/flat:
+  /ontology_viewer/classes/flat:
     get:
       tags:
         - Ontology viewer

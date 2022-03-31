@@ -6,7 +6,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
 from flask_tern.cache import cache
 
-from linkeddata_api.schemas.api_v1.ont_viewer.classes import flat
+from . import schema
 
 
 ontology_id_mapping = {
@@ -57,14 +57,14 @@ ORDER BY ?label
 
 
 @cache.memoize()
-def get(ontology_id: str) -> List[flat.ClassItem]:
+def get(ontology_id: str) -> List[schema.ClassItem]:
     try:
         mapping = ontology_id_mapping[ontology_id]
-    except KeyError:
+    except KeyError as err:
         description = f"Unknown ontology ID '{ontology_id}'. Valid ontology IDs: {list(ontology_id_mapping.keys())}"
         raise HTTPException(
             description=description, response=Response(description, status=404)
-        )
+        ) from err
 
     query = query_template.render(named_graph=mapping["named_graph"])
     headers = {
@@ -76,16 +76,16 @@ def get(ontology_id: str) -> List[flat.ClassItem]:
 
     try:
         r.raise_for_status()
-    except requests.RequestException:
+    except requests.RequestException as err:
         raise HTTPException(
             description=r.text, response=Response(r.text, status=r.status_code)
-        )
+        ) from err
 
     resultset = r.json()
     classes = list()
     for row in resultset["results"]["bindings"]:
         classes.append(
-            flat.ClassItem(id=row["id"]["value"], label=row["label"]["value"])
+            schema.ClassItem(id=row["id"]["value"], label=row["label"]["value"])
         )
 
     return classes
