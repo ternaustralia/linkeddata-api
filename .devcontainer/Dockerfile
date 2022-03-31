@@ -1,45 +1,24 @@
-FROM debian:10
+# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.231.0/containers/python-3/.devcontainer/base.Dockerfile
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    curl \
-    make \
-    procps \
-    sudo \
-    vim
+# [Choice] Python version (use -bullseye variants on local arm64/Apple Silicon): 3, 3.10, 3.9, 3.8, 3.7, 3.6, 3-bullseye, 3.10-bullseye, 3.9-bullseye, 3.8-bullseye, 3.7-bullseye, 3.6-bullseye, 3-buster, 3.10-buster, 3.9-buster, 3.8-buster, 3.7-buster, 3.6-buster
+ARG VARIANT="3.10-bullseye"
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
 
-RUN addgroup --gid 1000 vscode \
-    && adduser --uid 1000 --gid 1000 --disabled-password --gecos vscode vscode \
-    && adduser vscode sudo \
-    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/sudo
+# [Choice] Node.js version: none, lts/*, 16, 14, 12, 10
+ARG NODE_VERSION="none"
+RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
-RUN DEBIAN_FRONTED=noninteractive apt-get install -y \
-    git \
-    python3 \
-    python3-psutil \
-    python3-venv \
-    python3-wheel \
-    python3-dev \
-    build-essential \
-    libpq-dev
-    
-# create venv folder 
-RUN mkdir /opt/venv \
-    && chown 1000:1000 /opt/venv
+# [Optional] If your pip requirements rarely change, uncomment this section to add them to the image.
+COPY requirements.txt /tmp/pip-tmp/
+RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt \
+   && rm -rf /tmp/pip-tmp
+COPY requirements-test.txt /tmp/pip-tmp/
+RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements-test.txt \
+   && rm -rf /tmp/pip-tmp
 
-USER 1000
+# [Optional] Uncomment this section to install additional OS packages.
+# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+#     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-RUN python3 -m venv --system-site-packages /opt/venv
-
-ENV PATH=/opt/venv/bin:$PATH \
-    VIRTUAL_ENV=/opt/venv
-
-RUN pip install \
-    black \
-    flake8 \
-    ipdb \
-    pycodestyle \
-    pytest \
-    python-dotenv \
-    psycopg2-binary \
-    markupsafe==2.0.1
+# [Optional] Uncomment this line to install global node packages.
+# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
