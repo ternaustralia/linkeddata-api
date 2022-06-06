@@ -1,18 +1,20 @@
 import base64
 import logging
 
-from flask_tern.testing.fixtures import monkeypatch_session, cache_spec, basic_auth
+# from flask_tern.testing.fixtures import monkeypatch_session, cache_spec, basic_auth
 import pytest
+from flask import Flask
 
 from linkeddata_api import create_app
-from linkeddata_api.models import db
+
+# from linkeddata_api.models import db
 
 logging.basicConfig(level=logging.INFO)
 
 
 @pytest.fixture
 def app():
-    app = create_app(
+    _app = create_app(
         {
             "TESTING": True,
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
@@ -27,11 +29,11 @@ def app():
     #     db.create_all()
     #     # here we would set up initial data for all tests if needed
 
-    yield app
+    yield _app
 
 
 @pytest.fixture
-def client(app, basic_auth):
+def client(app: Flask):
     return app.test_client()
 
 
