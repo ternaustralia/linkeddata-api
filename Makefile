@@ -14,7 +14,7 @@ build:
 	docker build -t $(IMAGE) .
 
 test-cov-local:
-	pytest --cov=linkeddata_api tests/ --cov-report html
+	pytest --cov=linkeddata_api tests/ --cov-report html --log-cli-level=info
 
 cov-report:
 	python -m http.server -d htmlcov
