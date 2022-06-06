@@ -1,10 +1,13 @@
 import base64
+import logging
 
 from flask_tern.testing.fixtures import monkeypatch_session, cache_spec, basic_auth
 import pytest
 
 from linkeddata_api import create_app
 from linkeddata_api.models import db
+
+logging.basicConfig(level=logging.INFO)
 
 
 @pytest.fixture
@@ -30,3 +33,8 @@ def app():
 @pytest.fixture
 def client(app, basic_auth):
     return app.test_client()
+
+
+@pytest.fixture
+def logger():
+    return logging.getLogger(__name__)
