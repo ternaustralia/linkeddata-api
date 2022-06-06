@@ -106,3 +106,31 @@ paths:
             text/plain:
               schema:
                 type: string
+        "502":
+          description: Gateway error
+
+  /vocab_viewer/dawe_nrm/vocabs:
+    get:
+      tags:
+        - DAWE NRM vocabularies
+      summary: Get a list of DAWE NRM protocol vocabularies
+      description: Get a list of concept schemes and collections for the DAWE NRM protocol.
+      responses:
+        "200":
+          description: A list of concept schemes and collections.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  title: Vocabulary item
+                  type: object
+                  properties:
+                    id:
+                      title: IRI of item
+                      type: string
+                    label:
+                      title: Label of item
+                      type: string
+        "502":
+          description: Gateway error

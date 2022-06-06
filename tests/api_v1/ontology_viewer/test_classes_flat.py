@@ -1,6 +1,9 @@
 import pytest
+from pytest_mock import MockerFixture
 
 from flask.testing import FlaskClient
+
+import requests
 
 
 @pytest.fixture
@@ -19,4 +22,13 @@ def test_classes_flat_invalid_id(client: FlaskClient, url: str):
     assert response.status_code == 404
 
 
-# TODO: Test external request errors are raised and forwarded to client. Use pytest-mock here.
+def test_classes_flat_request_error(
+    client: FlaskClient, url: str, mocker: MockerFixture
+):
+    mocked_response = requests.Response()
+    mocked_response.status_code = 400
+
+    mocker.patch("requests.post", return_value=mocked_response)
+
+    response = client.get(url, query_string={"ontology_id": "tern-ontology"})
+    assert response.status_code == 502

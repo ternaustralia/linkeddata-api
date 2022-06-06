@@ -71,9 +71,10 @@ def get(ontology_id: str) -> List[schema.ClassItem]:
 
     try:
         r.raise_for_status()
-    except requests.RequestException as err:
+    except requests.exceptions.HTTPError as err:
         raise HTTPException(
-            description=r.text, response=Response(r.text, status=r.status_code)
+            description=err.response.text,
+            response=Response(err.response.text, status=502),
         ) from err
 
     resultset = r.json()
