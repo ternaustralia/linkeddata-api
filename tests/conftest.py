@@ -2,6 +2,7 @@ import base64
 import logging
 
 # from flask_tern.testing.fixtures import monkeypatch_session, cache_spec, basic_auth
+from flask_tern.testing.fixtures import basic_auth
 import pytest
 from flask import Flask
 
@@ -21,6 +22,7 @@ def app():
             "SQLALCHEMY_ENGINE_OPTIONS": {},
             "OIDC_DISCOVERY_URL": "https://auth.example.com/.well-known/openid-configuration",
             "OIDC_CLIENT_ID": "oidc-test",
+            "SESSION_TYPE": "null",
         }
     )
     # setup db
@@ -33,7 +35,7 @@ def app():
 
 
 @pytest.fixture
-def client(app: Flask):
+def client(app: Flask, basic_auth):
     return app.test_client()
 
 
