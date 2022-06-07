@@ -37,43 +37,25 @@ Flask-Cors: https://flask-cors.readthedocs.io/en/latest/
 Development
 -----------
 
-Clone the source code and cd into the directory of your local copy.
-You may want to adapt settings in .flaskenv
+Build and open this project in Visual Studio Code's devcontainer.
 
-.. code:: bash
+Run tests with coverage:
 
-    # install project in editable mode
-    pip install -e '.[testing,docs]'
-    # to run tests use
-    pytest
-    # coverage report
-    pytest --cov --cov-report=html
+```
+make test-cov-local
+```
 
+View the coverage report:
 
-The same can be done within a docker environment. The following is a simple example using alpine.
+```
+make cov-report
+```
 
-.. code:: bash
+Run the Flask development server
 
-    docker run --rm -it -p 5000:5000 -v "$(pwd)":/linkeddata_api -w /linkeddata_api alpine:3.10 sh
-    # install python in binary libs in container
-    apk add python3 py3-cryptography
-    # install pkg in container
-    pip3 install -e '.[testing]'
-    # run tests inside container
-    pytest
-    pytest --cov --cov-report=html
-
-
-Run flask development server.
-
-.. code:: bash
-
-    # locally
-    flask run
-    # within container
-    flask run -h 0.0.0.0
-
-The app can then be accessed at http://localhost:5000
+```
+flask run
+```
 
 
 Contact

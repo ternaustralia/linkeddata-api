@@ -71,7 +71,7 @@ paths:
               schema:
                 type: string
 
-  /classes/flat:
+  /ontology_viewer/classes/flat:
     get:
       tags:
         - Ontology viewer
@@ -106,3 +106,101 @@ paths:
             text/plain:
               schema:
                 type: string
+        "502":
+          description: Gateway error
+
+  /vocab_viewer/dawe_nrm/vocabs:
+    get:
+      tags:
+        - DAWE NRM vocabularies
+      summary: Get a list of DAWE NRM protocol vocabularies
+      description: Get a list of concept schemes and collections for the DAWE NRM protocol.
+      responses:
+        "200":
+          description: A list of concept schemes and collections.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  title: Vocabulary item
+                  type: object
+                  properties:
+                    id:
+                      title: IRI of item
+                      type: string
+                    label:
+                      title: Label of item
+                      type: string
+        "502":
+          description: Gateway error
+  
+  /rdf_tools/convert:
+    post:
+      tags:
+        - RDF Tools
+      summary: Convert from one RDF format to another
+      description: This uses Python's RDFLib to convert.
+      # parameters:
+      #   - in: header
+      #     name: accept
+      #     required: true
+      #     schema:
+      #       type: string
+      #       enum: 
+      #         - text/turtle
+      #         - application/ld+json
+      requestBody:
+        description: The payload data
+        required: true
+        content:
+          application/ld+json:
+            schema:
+              type: string
+              example:
+                "@context":
+                  "name": "http://schema.org/name"
+                  "image":
+                    "@id": "http://schema.org/image"
+                    "@type": "@id"
+                  "homepage":
+                    "@id": "http://schema.org/url"
+                    "@type": "@id"
+                "name": "Manu Sporny"
+                "homepage": "http://manu.sporny.org/"
+                "image": "http://manu.sporny.org/images/manu.png"
+          text/turtle:
+            schema:
+              type: string
+              example: |
+                @prefix ns1: <http://schema.org/> .
+
+                [] ns1:image <http://manu.sporny.org/images/manu.png> ;
+                    ns1:name "Manu Sporny" ;
+                    ns1:url <http://manu.sporny.org/> .
+      responses:
+        "200":
+          description: Convert
+          content:
+            text/turtle:
+              example: |
+                @prefix ns1: <http://schema.org/> .
+
+                [] ns1:image <http://manu.sporny.org/images/manu.png> ;
+                    ns1:name "Manu Sporny" ;
+                    ns1:url <http://manu.sporny.org/> .
+            application/ld+json:
+              schema:
+                type: string
+                example:
+                  "@context":
+                  "name": "http://schema.org/name"
+                  "image":
+                    "@id": "http://schema.org/image"
+                    "@type": "@id"
+                  "homepage":
+                    "@id": "http://schema.org/url"
+                    "@type": "@id"
+                  "name": "Manu Sporny"
+                  "homepage": "http://manu.sporny.org/"
+                  "image": "http://manu.sporny.org/images/manu.png"

@@ -13,6 +13,12 @@ build:
 	docker run --rm -it -v $(CURDIR):/workspace -w /workspace python:3.8 python setup.py bdist_wheel
 	docker build -t $(IMAGE) .
 
+test-cov-local:
+	pytest --cov=linkeddata_api tests/ --cov-report html --log-cli-level=info
+
+cov-report:
+	python -m http.server -d htmlcov
+
 test:
 	docker run --rm -it \
 	  -v $(CURDIR):/workspace \

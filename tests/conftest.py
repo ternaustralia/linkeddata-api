@@ -1,21 +1,28 @@
 import base64
+import logging
 
-from flask_tern.testing.fixtures import monkeypatch_session, cache_spec, basic_auth
+# from flask_tern.testing.fixtures import monkeypatch_session, cache_spec, basic_auth
+from flask_tern.testing.fixtures import basic_auth
 import pytest
+from flask import Flask
 
 from linkeddata_api import create_app
-from linkeddata_api.models import db
+
+# from linkeddata_api.models import db
+
+logging.basicConfig(level=logging.INFO)
 
 
 @pytest.fixture
 def app():
-    app = create_app(
+    _app = create_app(
         {
             "TESTING": True,
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             "SQLALCHEMY_ENGINE_OPTIONS": {},
             "OIDC_DISCOVERY_URL": "https://auth.example.com/.well-known/openid-configuration",
             "OIDC_CLIENT_ID": "oidc-test",
+            "SESSION_TYPE": "null",
         }
     )
     # setup db
@@ -24,9 +31,14 @@ def app():
     #     db.create_all()
     #     # here we would set up initial data for all tests if needed
 
-    yield app
+    yield _app
 
 
 @pytest.fixture
-def client(app, basic_auth):
+def client(app: Flask, basic_auth):
     return app.test_client()
+
+
+@pytest.fixture
+def logger():
+    return logging.getLogger(__name__)
