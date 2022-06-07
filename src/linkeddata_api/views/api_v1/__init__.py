@@ -4,3 +4,4 @@ from .blueprint import bp
 from . import ontology_viewer
 from . import vocab_viewer
 from . import version_info
+from . import rdf_tools
