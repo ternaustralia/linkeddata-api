@@ -1,5 +1,5 @@
 #!/bin/sh
 
-flask db upgrade
+# flask db upgrade
 
 exec "$@"
