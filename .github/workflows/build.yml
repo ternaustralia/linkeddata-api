@@ -68,7 +68,7 @@ jobs:
         with:
           source: ${{ steps.commit-hash.outputs.version }}
           find: "sha-"
-          replace: dev.${{ steps.commitscount.outputs.value }}+
+          replace: dev.${{ steps.commitscount.outputs.value }}.
 
       - name: Build project
         run: python setup.py bdist_wheel
