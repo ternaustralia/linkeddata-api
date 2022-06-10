@@ -90,7 +90,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          # Building for arm requires building wheels, takes too long.
+          # platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
           build-args: |
