@@ -24,9 +24,9 @@ def get() -> schema.Item:
         (SAMPLE(?_created) as ?created)
         (SAMPLE(?_modified) as ?modified)
         FROM <http://www.ontotext.com/explicit>
-        FROM <https://linked.data.gov.au/def/test/dawe-cv/>
+        FROM <https://linked.data.gov.au/def/nrm>
         WHERE { 
-            ?uri reg:register <https://linked.data.gov.au/def/test/dawe-cv/616c7c18-3309-472d-a38d-8106a1b6ff9b> .
+            <https://linked.data.gov.au/def/nrm> dcterms:hasPart ?uri .
             VALUES (?vocabularyType) {
                 (skos:ConceptScheme)
                 (skos:Collection)

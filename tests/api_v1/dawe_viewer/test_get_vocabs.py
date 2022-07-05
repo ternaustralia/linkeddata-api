@@ -28,7 +28,7 @@ def test_get_vocabs_request_error(client: FlaskClient, url: str, mocker: MockerF
 
 
 def test_get_vocabs_bad_sparql_response(
-    client: FlaskClient, url: str, mocker: MockerFixture, logger
+    client: FlaskClient, url: str, mocker: MockerFixture
 ):
     mocked_response = Response()
     mocked_response.status_code = 200
