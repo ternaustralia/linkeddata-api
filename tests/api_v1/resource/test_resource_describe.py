@@ -49,6 +49,7 @@ value = """
 @pytest.mark.parametrize(
     "mocked_status_code, response_status_code, accept_format, expected_format, uri, repository_id, include_incoming_relationships, content, expected_triples_count",
     [
+        # Expected usage
         (
             200,
             200,
@@ -60,6 +61,7 @@ value = """
             value,
             22,
         ),
+        # URI resource does not exist
         (
             200,
             404,
@@ -71,6 +73,7 @@ value = """
             "",
             22,
         ),
+        # RDF4J repository does not exist
         (
             415,
             502,
@@ -82,6 +85,7 @@ value = """
             "",
             22,
         ),
+        # Include incoming relationships
         (
             200,
             200,
@@ -92,6 +96,18 @@ value = """
             "true",
             value,
             23,
+        ),
+        # No accepted format, default to text/turtle
+        (
+            200,
+            200,
+            "",
+            "text/turtle",
+            "https://linked.data.gov.au/def/nrm",
+            "dawe_vocabs_core",
+            "false",
+            value,
+            22,
         ),
     ],
 )
@@ -129,5 +145,5 @@ def test_describe(
 
     if response.status_code == 200:
         graph = Graph()
-        graph.parse(data=response.text, format=accept_format)
+        graph.parse(data=response.text, format=expected_format)
         assert len(graph) == expected_triples_count

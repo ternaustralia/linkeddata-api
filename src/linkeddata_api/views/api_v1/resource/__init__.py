@@ -17,6 +17,8 @@ def get_resource():
     repository_id = request.args.get("repository_id")
     uri = request.args.get("uri")
     format_ = request.headers.get("accept")
+    if not format_:
+        format_ = "text/turtle"
     include_incoming_relationships = request.args.get("include_incoming_relationships")
     include_incoming_relationships = (
         True if include_incoming_relationships == "true" else False
@@ -38,7 +40,7 @@ def get_resource():
 
     graph = rdf.create_graph()
     graph.parse(data=response.text)
-    print(len(graph))
+
     if len(graph) == 0:
         return "Resource not found", 404
 
