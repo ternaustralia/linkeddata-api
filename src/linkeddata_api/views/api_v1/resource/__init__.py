@@ -17,7 +17,9 @@ def get_resource():
     repository_id = request.args.get("repository_id")
     uri = request.args.get("uri")
     format_ = request.headers.get("accept")
-    if not format_:
+    # TODO: Support 'format' query arg? It would make it easier to configure persistent redirect services.
+    # TODO: Curently we don't support multiple format types.
+    if not format_ or "," in format_:
         format_ = "text/turtle"
     include_incoming_relationships = request.args.get("include_incoming_relationships")
     include_incoming_relationships = (
@@ -39,7 +41,8 @@ def get_resource():
         ) from err
 
     graph = rdf.create_graph()
-    graph.parse(data=response.text)
+
+    graph.parse(data=response.text, format=format_)
 
     if len(graph) == 0:
         return "Resource not found", 404
