@@ -71,6 +71,66 @@ paths:
               schema:
                 type: string
 
+  /resource:
+    get:
+      tags:
+        - General
+      summary: Get RDF resource
+      description: Get an RDF resource by its URI in an RDF4J repository.
+      parameters:
+        - in: query
+          name: repository_id
+          schema: 
+            type: string
+          required: true
+          description: The RDF4J repository.
+          examples:
+            nrm_vocabs:
+              summary: NRM vocabs repository
+              value: dawe_vocabs_core
+        - in: query
+          name: uri
+          schema:
+            type: string
+          required: true
+          description: The URI of the resource.
+          examples:
+            nrm_index:
+              summary: NRM vocab URI
+              value: https://linked.data.gov.au/def/nrm
+        - in: query
+          name: include_incoming_relationships
+          schema:
+            type: string
+          description: Include incoming relationships
+          examples:
+            true:
+              value: true
+            false:
+              value: false
+      responses:
+        "200":
+          description: RDF resource
+          content:
+            application/n-triples:
+              schema:
+                type: string
+            text/turtle:
+              schema:
+                type: string
+        "404":
+          description: Resource of URI not found.
+          content:
+            text/html:
+              schema:
+                type: string
+        "502":
+          description: Error communicating with the database.
+          content:
+            text/html:
+              schema:
+                type: string
+
   /ontology_viewer/classes/flat:
     get:
       tags:
