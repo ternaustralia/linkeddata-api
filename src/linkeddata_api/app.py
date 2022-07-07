@@ -2,7 +2,8 @@ import os
 
 from flask import Flask, redirect, url_for
 
-# from flask_cors import CORS
+from flask_cors import CORS
+
 # from flask_migrate import Migrate
 from flask_tern import logging as app_logging
 from flask_tern.utils.config import load_settings
@@ -79,7 +80,7 @@ def create_app(config=None) -> Flask:
     # CORS
     ###############################################
     # TODO: there is more to this
-    # CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     ###############################################
     # ProxyFix
