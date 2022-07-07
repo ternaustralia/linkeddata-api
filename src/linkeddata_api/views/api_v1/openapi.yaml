@@ -192,6 +192,15 @@ paths:
                     label:
                       title: Label of item
                       type: string
+                    description:
+                      title: The description of the item
+                      type: string
+                    created:
+                      title: The date when the resource was created
+                      type: string
+                    modified: 
+                      title: The date when the resource was modified
+                      type: string
         "502":
           description: Gateway error
   
