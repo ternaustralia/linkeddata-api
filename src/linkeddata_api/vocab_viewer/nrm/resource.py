@@ -41,7 +41,9 @@ def get(
                     internal=False,  # TODO
                 )
                 if row["o"]["type"] == "uri":
-                    curie = nrm.curie.get(row["o"]["value"])
+                    curie = nrm.label.get(
+                        row["o"]["value"], sparql_endpoint
+                    ) or nrm.curie.get(row["o"]["value"])
                     item = nrm.schema.URI(
                         label=curie,
                         value=row["o"]["value"],
