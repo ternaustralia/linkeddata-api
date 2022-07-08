@@ -48,6 +48,43 @@ components:
         label:
           title: Label of class
           type: string
+    URI:
+      title: URI
+      type: object
+      properties:
+        type:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+        internal:
+          type: boolean
+    Literal:
+      title: Literal
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+        datatype:
+          type: string
+        language:
+          type: string
+    PredicateObjects:
+      title: Predicate objects
+      type: object
+      properties:
+        predicate: 
+          type: object
+          $ref: "#/components/schemas/URI"
+        objects:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/URI"
+              - $ref: "#/components/schemas/Literal"
 
 security:
   - BasicAuth: []
@@ -169,12 +206,12 @@ paths:
         "502":
           description: Gateway error
 
-  /vocab_viewer/dawe_nrm/vocabs:
+  /vocab_viewer/nrm/vocabs:
     get:
       tags:
-        - DAWE NRM vocabularies
-      summary: Get a list of DAWE NRM protocol vocabularies
-      description: Get a list of concept schemes and collections for the DAWE NRM protocol.
+        - NRM vocabularies
+      summary: Get a list of NRM protocol vocabularies
+      description: Get a list of concept schemes and collections for the NRM protocol.
       responses:
         "200":
           description: A list of concept schemes and collections.
@@ -192,8 +229,55 @@ paths:
                     label:
                       title: Label of item
                       type: string
+                    description:
+                      title: The description of the item
+                      type: string
+                    created:
+                      title: The date when the resource was created
+                      type: string
+                    modified: 
+                      title: The date when the resource was modified
+                      type: string
         "502":
           description: Gateway error
+
+  /vocab_viewer/nrm/resource:
+    get:
+      tags: 
+        - NRM vocabularies
+      summary: Get a resource's description
+      description: A JSON payload used to render frontend user-interfaces.
+      parameters:
+        - in: query
+          name: uri
+          schema:
+            type: string
+          required: true
+          description: URI of the resource.
+          examples:
+            nrm:
+              summary: NRM index
+              value: https://linked.data.gov.au/def/nrm
+      responses:
+        "200":
+          description: A resource's description
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uri:
+                    type: string
+                  label:
+                    type: string
+                  types:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/URI"
+                  properties:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PredicateObjects"
   
   /rdf_tools/convert:
     post:

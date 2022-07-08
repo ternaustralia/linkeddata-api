@@ -1,28 +1,33 @@
 from typing import Optional
 
 import requests
-from werkzeug.exceptions import HTTPException
-from werkzeug.wrappers import Response
 
+from linkeddata_api.vocab_viewer import nrm
 from . import schema
-from .. import settings
 
 
 def get_optional_value(row: dict, key: str) -> Optional[str]:
     return row.get(key)["value"] if row.get(key) else None
 
 
-def get() -> schema.Item:
+def get(
+    sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+) -> schema.Item:
+    """Get
+
+    Raises RequestError and SPARQLResultJSONError
+    """
+
     query = """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX reg: <http://purl.org/linked-data/registry/>
         SELECT 
-        ?uri 
-        (SAMPLE(?_label) as ?label) 
-        (SAMPLE(?_description) as ?description) 
-        (SAMPLE(?_created) as ?created)
-        (SAMPLE(?_modified) as ?modified)
+            ?uri 
+            (SAMPLE(?_label) as ?label) 
+            (SAMPLE(?_description) as ?description) 
+            (SAMPLE(?_created) as ?created)
+            (SAMPLE(?_modified) as ?modified)
         FROM <http://www.ontotext.com/explicit>
         FROM <https://linked.data.gov.au/def/nrm>
         WHERE { 
@@ -42,26 +47,12 @@ def get() -> schema.Item:
         ORDER by ?label 
     """
 
-    headers = {
-        "accept": "application/sparql-results+json",
-        "content-type": "application/sparql-query",
-    }
+    result = nrm.sparql.post(query, sparql_endpoint)
 
-    r = requests.post(url=settings.SPARQL_ENDPOINT, headers=headers, data=query)
-
-    try:
-        r.raise_for_status()
-    except requests.RequestException as err:
-        raise HTTPException(
-            description=err.response.text,
-            response=Response(err.response.text, status=502),
-        ) from err
-
-    resultset = r.json()
     vocabs = []
 
     try:
-        for row in resultset["results"]["bindings"]:
+        for row in result["results"]["bindings"]:
             vocabs.append(
                 schema.Item(
                     id=str(row["uri"]["value"]),
@@ -72,9 +63,8 @@ def get() -> schema.Item:
                 )
             )
     except KeyError as err:
-        raise HTTPException(
-            description=r.text,
-            response=Response("Unexpected SPARQL result set.\n" + str(err), status=502),
+        raise nrm.exceptions.SPARQLResultJSONError(
+            f"Unexpected SPARQL result set.\n{result}\n{err}"
         ) from err
 
     return vocabs
