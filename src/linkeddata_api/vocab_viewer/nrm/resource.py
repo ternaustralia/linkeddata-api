@@ -68,7 +68,11 @@ def get(
         return nrm.schema.Resource(
             uri=uri, label=label, types=types, properties=properties
         )
-    except Exception() as err:
+    except Exception as err:
+        if result == {"head": {"vars": ["p", "o"]}, "results": {"bindings": []}}:
+            raise nrm.exceptions.SPARQLNotFoundError(
+                f"Resource with URI {uri} not found."
+            )
         raise nrm.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result.\n{result}\n{err}"
         ) from err

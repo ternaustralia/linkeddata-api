@@ -13,7 +13,7 @@ def post(query: str, sparql_endpoint: str) -> dict:
 
     try:
         response.raise_for_status()
-    except requests.RequestException as err:
+    except requests.exceptions.HTTPError as err:
         raise nrm.exceptions.RequestError(err.response.text) from err
 
     return response.json()
