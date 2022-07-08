@@ -1,4 +1,3 @@
-import requests
 from rdflib import RDF
 
 from linkeddata_api.vocab_viewer import nrm
@@ -73,5 +72,3 @@ def get(
         raise nrm.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result.\n{result}\n{err}"
         ) from err
-
-    return result
