@@ -10,7 +10,7 @@ from linkeddata_api.vocab_viewer import nrm
 
 @bp.route("/vocab_viewer/nrm/vocabs")
 @openapi.validate(validate_response=False)
-def get_dawe_nrm_vocabs():
+def get_nrm_vocabs():
     # TODO: add log audit.
 
     try:
