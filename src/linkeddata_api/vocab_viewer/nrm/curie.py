@@ -18,6 +18,11 @@ def uri_in_skips(uri: str) -> bool:
 
 # TODO: use async?
 def get(uri: str):
+    """Get curie
+    
+    Fetches a curie from an external service. Return the uri as-is if it
+    is not available.
+    """
     if uri in cache:
         return cache.get(uri)
     if uri_in_skips(uri):
