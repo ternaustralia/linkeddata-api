@@ -12,3 +12,10 @@ class SPARQLResultJSONError(Exception):
     def __init__(self, description: str) -> None:
         super().__init__(description)
         self.description = description
+
+
+class SPARQLNotFoundError(Exception):
+    """SPARQL Not Found Error"""
+    def __init__(self, description: str) -> None:
+        super().__init__(description)
+        self.description = description

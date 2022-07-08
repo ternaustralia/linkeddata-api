@@ -278,6 +278,12 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/PredicateObjects"
+        "404":
+          description: Resource with URI not found
+          content:
+            text/plain:
+              schema:
+                type: string
   
   /rdf_tools/convert:
     post:
