@@ -14,6 +14,11 @@ from linkeddata_api.vocab_viewer import nrm
 def get_nrm_resource():
     uri = request.args.get("uri")
 
-    result = nrm.resource.get(uri)
+    try:
+        result = nrm.resource.get(uri)
+    except (nrm.exceptions.RequestError, nrm.exceptions.SPARQLResultJSONError) as err:
+        raise HTTPException(err.description, Response(err.description, 502)) from err
+    except Exception as err:
+        raise HTTPException(str(err), 500) from err
 
     return jsonify(result, headers={"cache-control": "max-age=600, s-maxage=3600"})

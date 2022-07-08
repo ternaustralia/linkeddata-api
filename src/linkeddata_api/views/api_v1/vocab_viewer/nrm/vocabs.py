@@ -17,5 +17,7 @@ def get_nrm_vocabs():
         items = nrm.vocabs.get()
     except (nrm.exceptions.RequestError, nrm.exceptions.SPARQLResultJSONError) as err:
         raise HTTPException(err.description, Response(err.description, 502)) from err
+    except Exception as err:
+        raise HTTPException(str(err), 500) from err
 
     return jsonify(items, headers={"cache-control": "max-age=600, s-maxage=3600"})
