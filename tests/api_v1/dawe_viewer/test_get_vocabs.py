@@ -8,7 +8,7 @@ from requests import Response
 
 @pytest.fixture
 def url() -> str:
-    return "/api/v1.0/vocab_viewer/dawe_nrm/vocabs"
+    return "/api/v1.0/vocab_viewer/nrm/vocabs"
 
 
 def test_get_vocabs(client: FlaskClient, url: str):

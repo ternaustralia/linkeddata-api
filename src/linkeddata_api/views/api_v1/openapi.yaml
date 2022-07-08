@@ -169,12 +169,12 @@ paths:
         "502":
           description: Gateway error
 
-  /vocab_viewer/dawe_nrm/vocabs:
+  /vocab_viewer/nrm/vocabs:
     get:
       tags:
-        - DAWE NRM vocabularies
-      summary: Get a list of DAWE NRM protocol vocabularies
-      description: Get a list of concept schemes and collections for the DAWE NRM protocol.
+        - NRM vocabularies
+      summary: Get a list of NRM protocol vocabularies
+      description: Get a list of concept schemes and collections for the NRM protocol.
       responses:
         "200":
           description: A list of concept schemes and collections.
