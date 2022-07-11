@@ -5,7 +5,7 @@ from linkeddata_api.vocab_viewer import nrm
 
 def get(
     uri: str,
-    profile: str = None,
+    profile: str = None,  # TODO: Add presentation handling for different kinds of data
     sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
 ) -> nrm.schema.Resource:
     query = f"""
