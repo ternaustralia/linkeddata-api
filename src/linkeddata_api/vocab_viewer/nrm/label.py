@@ -39,7 +39,7 @@ def _get_from_list_query(uris: list[str]) -> str:
     template = Template(
         """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-        SELECT DISTINCT ?uri ?label
+        SELECT DISTINCT ?uri (SAMPLE(?_label) AS ?label)
         WHERE {
             VALUES (?uri) {
                 {% for uri in uris %}
@@ -47,8 +47,17 @@ def _get_from_list_query(uris: list[str]) -> str:
                 {% endfor %}
             }
             
-            ?uri skos:prefLabel ?label .
+            {
+                ?uri skos:prefLabel ?_label .        
+            }
+            UNION {
+                # Also try and fetch label from TERN's controlled vocabularies.
+                SERVICE <repository:tern_vocabs_core> {
+                    ?uri skos:prefLabel ?_label .
+                }
+            }
         }
+        GROUP BY ?uri
     """
     )
     return template.render(uris=uris)
@@ -58,7 +67,11 @@ def get_from_list(
     uris: list[str],
     sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
 ) -> dict[str, str]:
-    """Returns a dict of uri keys and label values."""
+    """Returns a dict of uri keys and label values.
+
+    In addition to the SPARQL endpoint provided, it also fetches labels
+    from TERN's controlled vocabularies via a federated SPARQL query.
+    """
     query = _get_from_list_query(uris)
 
     result = nrm.sparql.post(query, sparql_endpoint)
