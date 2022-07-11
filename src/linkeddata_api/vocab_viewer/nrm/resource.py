@@ -49,11 +49,11 @@ def get(
                     internal=uri_internal_index.get(row["p"]["value"], False),
                 )
                 if row["o"]["type"] == "uri":
-                    curie = uri_label_index.get(row["o"]["value"]) or nrm.curie.get(
+                    object_label = uri_label_index.get(row["o"]["value"]) or nrm.curie.get(
                         row["o"]["value"]
                     )
                     item = nrm.schema.URI(
-                        label=curie,
+                        label=object_label,
                         value=row["o"]["value"],
                         internal=uri_internal_index.get(row["o"]["value"], False),
                     )
