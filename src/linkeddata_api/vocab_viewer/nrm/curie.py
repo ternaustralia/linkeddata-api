@@ -47,7 +47,6 @@ def get(uri: str):
     if uri in not_found:
         return not_found.get(uri)
     if uri_in_skips(uri):
-        print("in skip")
         return uri
 
     localname = uri.split("#")[-1].split("/")[-1]
