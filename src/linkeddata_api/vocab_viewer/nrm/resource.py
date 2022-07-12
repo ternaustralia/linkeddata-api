@@ -41,9 +41,12 @@ def get(
 
         for row in result["results"]["bindings"]:
             if row["p"]["value"] == str(RDF.type):
+                type_label = uri_label_index.get(row["o"]["value"]) or nrm.curie.get(
+                    row["o"]["value"]
+                )
                 types.append(
                     nrm.schema.URI(
-                        label="rdf:type",
+                        label=type_label,
                         value=row["o"]["value"],
                         internal=uri_internal_index.get(row["o"]["value"], False),
                     )
@@ -65,10 +68,27 @@ def get(
                         internal=uri_internal_index.get(row["o"]["value"], False),
                     )
                 elif row["o"]["type"] == "literal":
-                    item = nrm.schema.Literal(value=row["o"]["value"])
+                    datatype = row["o"].get("datatype", "")
+                    if datatype:
+                        datatype = nrm.schema.URI(
+                            label=datatype,
+                            value=datatype,
+                            internal=uri_internal_index.get(datatype, False),
+                        )
+                    else:
+                        datatype = None
+
+                    item = nrm.schema.Literal(
+                        value=row["o"]["value"],
+                        datatype=datatype,
+                        language=row["o"].get("xml:lang", ""),
+                    )
+                elif row["o"]["type"] == "bnode":
+                    # TODO: Handle blank nodes.
+                    pass
                 else:
                     raise ValueError(
-                        f"Expected type to be uri or literal but got {row['o']['value']}"
+                        f"Expected type to be uri or literal but got {row['o']['type']}"
                     )
                 found = False
                 for p in properties:
