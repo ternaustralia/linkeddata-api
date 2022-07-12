@@ -21,7 +21,7 @@ class URI(BaseModel):
 class Literal(BaseModel):
     type: str = "literal"
     value: str
-    datatype: URI = ""
+    datatype: URI = None
     language: str = ""
 
 
