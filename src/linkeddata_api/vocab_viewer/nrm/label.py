@@ -86,6 +86,9 @@ def get_from_list(
             labels[uri] = label
 
     except KeyError as err:
+        if result["results"]["bindings"] == [{}]:
+            return {}
+
         raise nrm.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result set.\n{result}\n{err}"
         ) from err
