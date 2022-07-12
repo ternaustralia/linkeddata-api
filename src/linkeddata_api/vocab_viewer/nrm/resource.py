@@ -26,11 +26,18 @@ def get(
             lambda x: x["o"]["type"] == "uri", result["results"]["bindings"]
         )
         uri_values = [value["o"]["value"] for value in uri_values]
+        uri_values.append(uri)
+
         uri_label_index = nrm.label.get_from_list(uri_values, sparql_endpoint)
 
         label = nrm.label.get(uri, sparql_endpoint) or uri
 
         uri_internal_index = nrm.internal_resource.get_from_list(uri_values)
+
+        if not uri_internal_index.get(uri):
+            raise nrm.exceptions.SPARQLNotFoundError(
+                f"Resource with URI {uri} not found."
+            )
 
         for row in result["results"]["bindings"]:
             if row["p"]["value"] == str(RDF.type):
@@ -49,9 +56,9 @@ def get(
                     internal=uri_internal_index.get(row["p"]["value"], False),
                 )
                 if row["o"]["type"] == "uri":
-                    object_label = uri_label_index.get(row["o"]["value"]) or nrm.curie.get(
+                    object_label = uri_label_index.get(
                         row["o"]["value"]
-                    )
+                    ) or nrm.curie.get(row["o"]["value"])
                     item = nrm.schema.URI(
                         label=object_label,
                         value=row["o"]["value"],
@@ -77,11 +84,9 @@ def get(
         return nrm.schema.Resource(
             uri=uri, label=label, types=types, properties=properties
         )
+    except nrm.exceptions.SPARQLNotFoundError as err:
+        raise err
     except Exception as err:
-        if result == {"head": {"vars": ["p", "o"]}, "results": {"bindings": []}}:
-            raise nrm.exceptions.SPARQLNotFoundError(
-                f"Resource with URI {uri} not found."
-            ) from err
         raise nrm.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result.\n{result}\n{err}"
         ) from err
