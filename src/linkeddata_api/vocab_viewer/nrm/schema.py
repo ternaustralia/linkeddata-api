@@ -11,18 +11,30 @@ class Item(BaseModel):
     modified: str = None
 
 
-class URI(BaseModel):
+class RDFListItemMixin(BaseModel):
+    list_item: bool = False
+    list_item_number: int | None = None
+
+
+class URI(RDFListItemMixin):
     type: str = "uri"
     label: str
     value: str
     internal: bool
 
+    def __hash__(self):
+        return hash(self.value)
 
-class Literal(BaseModel):
+
+class Literal(RDFListItemMixin):
     type: str = "literal"
     value: str
     datatype: URI = None
     language: str = ""
+
+    def __hash__(self):
+        datatype = self.datatype.value if self.datatype else ""
+        return hash(self.value + datatype + self.language)
 
 
 class PredicateObjects(BaseModel):
@@ -32,6 +44,7 @@ class PredicateObjects(BaseModel):
 
 class Resource(BaseModel):
     uri: str
+    profile: str = ""
     label: str
     types: list[URI]
     properties: list[PredicateObjects]
