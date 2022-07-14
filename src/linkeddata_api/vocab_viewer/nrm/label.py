@@ -52,7 +52,7 @@ def _get_from_list_query(uris: list[str]) -> str:
             }
             UNION {
                 # Also try and fetch label from TERN's controlled vocabularies.
-                SERVICE <repository:tern_vocabs_core> {
+                SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
                     ?uri skos:prefLabel ?_label .
                 }
             }
