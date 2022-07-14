@@ -62,7 +62,7 @@ def _get_rdf_list_item_uris(uri: str, rows: list, sparql_endpoint: str) -> list[
     new_uris = []
     for row in rows:
         if row["o"]["type"] == "bnode" and row["listItem"]["value"] == "true":
-            # TODO: error handling - move empty result exception to nrm.sparql.post
+            # TODO: error handling - move empty result exception to nrm.sparql.post/nrm.sparql.get
             query = f"""
                 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
                 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -85,41 +85,7 @@ def _get_rdf_list_item_uris(uri: str, rows: list, sparql_endpoint: str) -> list[
     return new_uris
 
 
-def _get_rdf_list_item_as_uri_objects(
-    uri: str,
-    predicate_uri: str,
-    sparql_endpoint: str,
-    uri_label_index: dict,
-    uri_internal_index: dict,
-) -> list[nrm.schema.URI]:
-    uri_objects = []
-    # TODO: error handling - move empty result exception to nrm.sparql.post
-    result = nrm.sparql.post(
-        f"""
-        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        SELECT DISTINCT ?item 
-        where {{
-            BIND(<{predicate_uri}> AS ?p)
-            <{uri}> ?p ?list .
-            ?list rdf:rest* ?rest .
-            ?rest rdf:first ?item .
-        }}
-    """,
-        sparql_endpoint,
-    )
-    return result["results"]["bindings"]
-    # for row in result["results"]["bindings"]:
-    #     uri_objects.append(result["item"]["value"])
-
-    # return uri_objects
-
-
-def get(
-    uri: str,
-    profile: str = None,  # TODO: Add presentation handling for different kinds of data
-    sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
-) -> nrm.schema.Resource:
+def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
     query = f"""
         SELECT ?p ?o ?listItem ?listItemNumber
         WHERE {{
@@ -280,6 +246,7 @@ def get(
             properties = _method_profile(properties)
         elif _exists_uri("https://w3id.org/tern/ontologies/tern/Method", types):
             profile = "https://w3id.org/tern/ontologies/tern/Method"
+            properties = _method_profile(properties)
 
         return nrm.schema.Resource(
             uri=uri, profile=profile, label=label, types=types, properties=properties
