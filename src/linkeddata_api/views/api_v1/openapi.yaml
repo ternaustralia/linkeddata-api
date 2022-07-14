@@ -258,6 +258,16 @@ paths:
             nrm:
               summary: NRM index
               value: https://linked.data.gov.au/def/nrm
+        - in: query
+          name: sparql_endpoint
+          schema:
+            type: string
+          required: true
+          description: SPARQL endpoint
+          examples:
+            nrm:
+              summary: NRM SPARQL endpoint
+              value: https://graphdb.tern.org.au/repositories/dawe_vocabs_core
       responses:
         "200":
           description: A resource's description
