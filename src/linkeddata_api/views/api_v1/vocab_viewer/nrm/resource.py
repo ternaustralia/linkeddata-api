@@ -13,9 +13,10 @@ from linkeddata_api.vocab_viewer import nrm
 @openapi.validate(validate_response=False)
 def get_nrm_resource():
     uri = request.args.get("uri")
+    sparql_endpoint = request.args.get("sparql_endpoint")
 
     try:
-        result = nrm.resource.get(uri)
+        result = nrm.resource.get(uri, sparql_endpoint)
     except nrm.exceptions.SPARQLNotFoundError as err:
         raise HTTPException(err.description, Response(err.description, 404)) from err
     except (nrm.exceptions.RequestError, nrm.exceptions.SPARQLResultJSONError) as err:

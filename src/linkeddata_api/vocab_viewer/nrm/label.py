@@ -36,6 +36,8 @@ def get(
 
 
 def _get_from_list_query(uris: list[str]) -> str:
+    # TODO: Currently, we try and fetch from TERN's controlled vocabularies.
+    # We may want to also fetch with a SERVICE query from other repositories in the future.
     template = Template(
         """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -52,7 +54,7 @@ def _get_from_list_query(uris: list[str]) -> str:
             }
             UNION {
                 # Also try and fetch label from TERN's controlled vocabularies.
-                SERVICE <repository:tern_vocabs_core> {
+                SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
                     ?uri skos:prefLabel ?_label .
                 }
             }
