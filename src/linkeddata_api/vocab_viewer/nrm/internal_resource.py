@@ -10,7 +10,6 @@ def _get_from_list_query(uris: list[str]) -> str:
         SELECT distinct ?uri ?internal
         WHERE {
             VALUES (?uri) {
-                (<http://example.com>)
                 {% for uri in uris %}
                 (<{{ uri }}>)
                 {% endfor %}

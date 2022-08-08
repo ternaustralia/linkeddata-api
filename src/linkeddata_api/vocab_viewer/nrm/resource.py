@@ -140,7 +140,7 @@ def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
 
         label = nrm.label.get(uri, sparql_endpoint) or uri
 
-        uri_internal_index = nrm.internal_resource.get_from_list(uri_values)
+        uri_internal_index = nrm.internal_resource.get_from_list(uri_values, sparql_endpoint)
 
         if not uri_internal_index.get(uri):
             raise nrm.exceptions.SPARQLNotFoundError(
