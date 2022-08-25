@@ -40,8 +40,8 @@ class Literal(RDFListItemMixin):
 
 
 class SubjectPredicates(BaseModel):
-    subject: URI
     predicate: URI
+    subjects: list[URI]
 
 
 class PredicateObjects(BaseModel):

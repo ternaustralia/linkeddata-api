@@ -197,9 +197,17 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
             if row["listItem"]["value"] == "true"
             else None,
         )
-        incoming_properties.append(
-            nrm.schema.SubjectPredicates(subject=item, predicate=predicate)
-        )
+
+        found = False
+        for p in incoming_properties:
+            if p.predicate.value == predicate.value:
+                found = True
+                p.subjects.append(item)
+
+        if not found:
+            incoming_properties.append(
+                nrm.schema.SubjectPredicates(predicate=predicate, subjects=[item])
+            )
 
     return incoming_properties
 
@@ -287,6 +295,7 @@ def _get_types_and_properties(
                 raise ValueError(
                     f"Expected type to be uri or literal but got {row['o']['type']}"
                 )
+
             found = False
             for p in properties:
                 if p.predicate.value == predicate.value:
