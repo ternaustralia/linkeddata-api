@@ -1,64 +1,14 @@
-from rdflib import RDF, RDFS, SKOS, SDO, DCTERMS
+from rdflib import RDF
 
 from linkeddata_api.vocab_viewer import nrm
-from linkeddata_api.vocab_viewer.nrm.namespaces import TERN
+from linkeddata_api.vocab_viewer.nrm.resource.exists_uri import exists_uri
+from linkeddata_api.vocab_viewer.nrm.resource.profiles import method_profile
+from linkeddata_api.vocab_viewer.nrm.resource.sort_property_objects import (
+    sort_property_objects,
+)
 
 
-def _exists_uri(target_uri: str, uris: list[nrm.schema.URI]) -> bool:
-    for uri in uris:
-        if uri.value == target_uri:
-            return True
-    return False
-
-
-def _add_and_remove_property(
-    predicate_uri: str,
-    old_list: list[nrm.schema.PredicateObjects],
-    new_list: list[nrm.schema.PredicateObjects],
-) -> None:
-    """Add and remove the PredicateObjects object if matched by predicate_uri in
-    the referenced lists, 'old_list' and 'new_list'
-
-    Returns a copy of the PredicateObjects object.
-    """
-    predicate_object = None
-    for property_ in old_list:
-        if property_.predicate.value == predicate_uri:
-            new_list.append(property_)
-            predicate_object = property_
-            old_list.remove(property_)
-    return predicate_object
-
-
-def _method_profile(
-    properties: list[nrm.schema.PredicateObjects],
-) -> list[nrm.schema.PredicateObjects]:
-    new_properties = []
-
-    _add_and_remove_property(str(RDFS.isDefinedBy), properties, new_properties)
-
-    # Omit skos:prefLabel
-    _add_and_remove_property(str(SKOS.prefLabel), properties, new_properties)
-    new_properties.pop()
-
-    _add_and_remove_property(str(TERN), properties, new_properties)
-    _add_and_remove_property(str(SDO.url), properties, new_properties)
-    _add_and_remove_property(str(SKOS.memberList), properties, new_properties)
-    _add_and_remove_property(str(TERN.scope), properties, new_properties)
-    _add_and_remove_property(str(SKOS.definition), properties, new_properties)
-    _add_and_remove_property(str(TERN.purpose), properties, new_properties)
-    # TODO: Change to different property due to issue with RVA
-    _add_and_remove_property(str(DCTERMS.description), properties, new_properties)
-    _add_and_remove_property(str(TERN.equipment), properties, new_properties)
-    _add_and_remove_property(str(TERN.instructions), properties, new_properties)
-    _add_and_remove_property(str(SKOS.note), properties, new_properties)
-    _add_and_remove_property(str(DCTERMS.source), properties, new_properties)
-    _add_and_remove_property(str(TERN.appendix), properties, new_properties)
-
-    return new_properties + properties
-
-
-def _get_rdf_list_item_uris(uri: str, rows: list, sparql_endpoint: str) -> list[str]:
+def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[str]:
     new_uris = []
     for row in rows:
         if row["o"]["type"] == "bnode" and row["listItem"]["value"] == "true":
@@ -85,6 +35,70 @@ def _get_rdf_list_item_uris(uri: str, rows: list, sparql_endpoint: str) -> list[
     return new_uris
 
 
+def _get_uri_values_and_list_items(result, uri, sparql_endpoint):
+    uri_values = filter(
+        lambda x: x["o"]["type"] == "uri", result["results"]["bindings"]
+    )
+
+    uri_values = [value["o"]["value"] for value in uri_values]
+    uri_values.append(uri)
+
+    # Replace value of blank node list head with items.
+    list_items = _get_uris_from_rdf_list(
+        uri, result["results"]["bindings"], sparql_endpoint
+    )
+
+    for row in list_items:
+        uri_values.append(row["o"]["value"])
+
+    return uri_values, list_items
+
+
+def _add_rows_for_rdf_list_items(result, uri, sparql_endpoint):
+    """Add rdf:List items as new rows to the SPARQL result object
+
+    :param result: The SPARQL result dict object
+    :param uri: URI of the resource
+    :param sparql_endpoint: SPARQL endpoint to fetch the list items from
+    :return: An updated SPARQL result dict object
+    """
+    _, list_items = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
+
+    # Add additional rows to the `result` representing the RDF List items.
+    for i, list_item in enumerate(list_items):
+        list_item.update(
+            {
+                "listItem": {
+                    "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+                    "type": "literal",
+                    "value": "true",
+                },
+                "listItemNumber": {
+                    "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                    "type": "literal",
+                    "value": str(i),
+                },
+            }
+        )
+        result["results"]["bindings"].append(list_item)
+
+    return result
+
+
+def _get_uri_label_index(result, uri, sparql_endpoint):
+    uri_values, _ = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
+    uri_label_index = nrm.label.get_from_list(uri_values, sparql_endpoint)
+    return uri_label_index
+
+
+def _get_uri_internal_index(result, uri, sparql_endpoint):
+    uri_values, _ = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
+    uri_internal_index = nrm.internal_resource.get_from_list(
+        uri_values, sparql_endpoint
+    )
+    return uri_internal_index
+
+
 def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
     query = f"""
         SELECT ?p ?o ?listItem ?listItemNumber
@@ -100,47 +114,18 @@ def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
     result = nrm.sparql.post(query, sparql_endpoint)
 
     try:
-        uri = uri
-        types = []
-        properties = []
+        types: list[nrm.schema.URI] = []
+        properties: list[nrm.schema.PredicateObjects] = []
 
-        uri_values = filter(
-            lambda x: x["o"]["type"] == "uri", result["results"]["bindings"]
-        )
+        result = _add_rows_for_rdf_list_items(result, uri, sparql_endpoint)
 
-        uri_values = [value["o"]["value"] for value in uri_values]
-        uri_values.append(uri)
-
-        # Replace value of blank node list head with items.
-        list_items = _get_rdf_list_item_uris(
-            uri, result["results"]["bindings"], sparql_endpoint
-        )
-
-        for row in list_items:
-            uri_values.append(row["o"]["value"])
-
-        for i, list_item in enumerate(list_items):
-            list_item.update(
-                {
-                    "listItem": {
-                        "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
-                        "type": "literal",
-                        "value": "true",
-                    },
-                    "listItemNumber": {
-                        "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                        "type": "literal",
-                        "value": str(i),
-                    },
-                }
-            )
-            result["results"]["bindings"].append(list_item)
-
-        uri_label_index = nrm.label.get_from_list(uri_values, sparql_endpoint)
+        # An index of URIs with label values.
+        uri_label_index = _get_uri_label_index(result, uri, sparql_endpoint)
 
         label = nrm.label.get(uri, sparql_endpoint) or uri
 
-        uri_internal_index = nrm.internal_resource.get_from_list(uri_values, sparql_endpoint)
+        # An index of all the URIs linked to and from this resource that are available internally.
+        uri_internal_index = _get_uri_internal_index(result, uri, sparql_endpoint)
 
         if not uri_internal_index.get(uri):
             raise nrm.exceptions.SPARQLNotFoundError(
@@ -241,15 +226,20 @@ def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
             property_.objects.sort(key=sort_property_objects)
 
         profile = ""
-        if _exists_uri("https://w3id.org/tern/ontologies/tern/MethodCollection", types):
+        if exists_uri("https://w3id.org/tern/ontologies/tern/MethodCollection", types):
             profile = "https://w3id.org/tern/ontologies/tern/MethodCollection"
-            properties = _method_profile(properties)
-        elif _exists_uri("https://w3id.org/tern/ontologies/tern/Method", types):
+            properties = method_profile(properties)
+        elif exists_uri("https://w3id.org/tern/ontologies/tern/Method", types):
             profile = "https://w3id.org/tern/ontologies/tern/Method"
-            properties = _method_profile(properties)
+            properties = method_profile(properties)
 
         return nrm.schema.Resource(
-            uri=uri, profile=profile, label=label, types=types, properties=properties
+            uri=uri,
+            profile=profile,
+            label=label,
+            types=types,
+            properties=properties,
+            incoming_properties=[],
         )
     except nrm.exceptions.SPARQLNotFoundError as err:
         raise err
@@ -257,13 +247,3 @@ def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
         raise nrm.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result.\n{result}\n{err}"
         ) from err
-
-
-def sort_property_objects(x):
-    if x.list_item:
-        return x.list_item_number
-    else:
-        if x.type == "uri":
-            return x.label
-        else:
-            return x.value

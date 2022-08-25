@@ -12,6 +12,7 @@ class Item(BaseModel):
 
 
 class RDFListItemMixin(BaseModel):
+    """An item in an RDF List"""
     list_item: bool = False
     list_item_number: int | None = None
 
@@ -48,3 +49,4 @@ class Resource(BaseModel):
     label: str
     types: list[URI]
     properties: list[PredicateObjects]
+    incoming_properties: list[PredicateObjects]
