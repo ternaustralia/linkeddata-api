@@ -1,7 +1,5 @@
 from typing import Optional
 
-import requests
-
 from linkeddata_api.vocab_viewer import nrm
 from . import schema
 
