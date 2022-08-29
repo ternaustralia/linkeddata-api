@@ -7,14 +7,11 @@ from rdflib import URIRef
 from linkeddata_api.views.api_v1.blueprint import bp
 from linkeddata_api import rdf
 
-# TODO: Move this somewhere else.
-GRAPHDB_URL = "https://graphdb.tern.org.au/repositories/"
 
-
-@bp.get("/resource")
+@bp.get("/ld_viewer/resource")
 @openapi.validate(validate_request=False, validate_response=False)
 def get_resource():
-    repository_id = request.args.get("repository_id")
+    sparql_endpoint = request.args.get("sparql_endpoint")
     uri = request.args.get("uri")
     format_ = request.headers.get("accept")
     # TODO: Support 'format' query arg? It would make it easier to configure persistent redirect services.
@@ -27,7 +24,7 @@ def get_resource():
     )
 
     response = requests.get(
-        GRAPHDB_URL + repository_id,
+        sparql_endpoint,
         headers={"accept": format_},
         params={"query": f"DESCRIBE <{uri}>"},
     )

@@ -108,23 +108,23 @@ paths:
               schema:
                 type: string
 
-  /resource:
+  /ld_viewer/resource:
     get:
       tags:
-        - General
+        - Linked Data viewer
       summary: Get RDF resource
       description: Get an RDF resource by its URI in an RDF4J repository.
       parameters:
         - in: query
-          name: repository_id
+          name: sparql_endpoint
           schema: 
             type: string
           required: true
-          description: The RDF4J repository.
+          description: The SPARQL endpoint for querying\.
           examples:
             nrm_vocabs:
-              summary: NRM vocabs repository
-              value: dawe_vocabs_core
+              summary: NRM vocabs SPARQL endpoint
+              value: https://graphdb.tern.org.au/repositories/dawe_vocabs_core
         - in: query
           name: uri
           schema:
