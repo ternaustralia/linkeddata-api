@@ -1,9 +1,9 @@
 from rdflib import RDF
 
 from linkeddata_api import data, domain
-from linkeddata_api.domain.ld_viewer.resource.json.exists_uri import exists_uri
-from linkeddata_api.domain.ld_viewer.resource.json.profiles import method_profile
-from linkeddata_api.domain.ld_viewer.resource.json.sort_property_objects import (
+from linkeddata_api.domain.viewer.resource.json.exists_uri import exists_uri
+from linkeddata_api.domain.viewer.resource.json.profiles import method_profile
+from linkeddata_api.domain.viewer.resource.json.sort_property_objects import (
     sort_property_objects,
 )
 
@@ -146,10 +146,6 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
     except data.exceptions.SPARQLNotFoundError as err:
         raise err
     except Exception as err:
-        import traceback
-        import sys
-
-        print(traceback.format_exc())
         raise data.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result.\n{result}\n{err}"
         ) from err

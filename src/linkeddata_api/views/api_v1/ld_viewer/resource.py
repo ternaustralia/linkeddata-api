@@ -4,7 +4,7 @@ from flask_tern import openapi
 
 from linkeddata_api.views.api_v1.blueprint import bp
 from linkeddata_api import domain
-from linkeddata_api.domain.ld_viewer.resource import (
+from linkeddata_api.domain.viewer.resource import (
     RequestError,
     SPARQLNotFoundError,
     SPARQLResultJSONError,
