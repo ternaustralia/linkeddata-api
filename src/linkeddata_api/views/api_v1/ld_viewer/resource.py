@@ -26,7 +26,7 @@ def get_resource():
     )
 
     try:
-        result = domain.ld_viewer.resource.get(
+        result = domain.viewer.resource.get(
             uri, sparql_endpoint, format_, include_incoming_relationships
         )
     except SPARQLNotFoundError as err:
