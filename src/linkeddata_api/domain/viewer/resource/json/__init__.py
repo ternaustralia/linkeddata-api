@@ -132,7 +132,7 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
             profile = "https://w3id.org/tern/ontologies/tern/Method"
             properties = method_profile(properties)
 
-        incoming_properties = _get_incoming_properties(uri, sparql_endpoint)
+        # incoming_properties = _get_incoming_properties(uri, sparql_endpoint)
 
         return domain.schema.Resource(
             uri=uri,
