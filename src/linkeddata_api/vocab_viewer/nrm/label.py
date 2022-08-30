@@ -7,7 +7,7 @@ from linkeddata_api.vocab_viewer import nrm
 
 def get(
     uri: str,
-    sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+    sparql_endpoint: str,
 ) -> Union[str, None]:
     """
     Returns a label or None if no label found.
@@ -67,7 +67,7 @@ def _get_from_list_query(uris: list[str]) -> str:
 
 def get_from_list(
     uris: list[str],
-    sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+    sparql_endpoint: str,
 ) -> dict[str, str]:
     """Returns a dict of uri keys and label values.
 

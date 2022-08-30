@@ -24,7 +24,7 @@ def _get_from_list_query(uris: list[str]) -> str:
 
 def get_from_list(
     uris: list[str],
-    sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+    sparql_endpoint: str,
 ) -> dict[str, str]:
     query = _get_from_list_query(uris)
 

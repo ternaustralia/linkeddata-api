@@ -12,18 +12,24 @@ from linkeddata_api.domain.viewer.entrypoints.exceptions import (
 from linkeddata_api.domain.pydantic_jsonify import jsonify
 
 
-mapping = {"nrm": domain.viewer.entrypoints.nrm.get}
+mapping = {
+    "nrm": {
+        "func": domain.viewer.entrypoints.nrm.get,
+        "sparql_endpoint": "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+    }
+}
 
 
 @bp.get("/viewer/entrypoint/<string:viewer_id>")
 @openapi.validate(validate_request=False, validate_response=False)
 def get_entrypoint(viewer_id: str):
     try:
-        func = mapping.get(viewer_id)
-        if func is None:
+        obj = mapping.get(viewer_id)
+        if obj is None:
             raise ViewerIDNotFoundError(f"Key '{viewer_id}' not found")
 
-        items = func()
+        sparql_endpoint = obj["sparql_endpoint"]
+        items = obj["func"](sparql_endpoint)
     except ViewerIDNotFoundError as err:
         raise HTTPException(str(err), Response(str(err), 404)) from err
     except (RequestError, SPARQLResultJSONError) as err:

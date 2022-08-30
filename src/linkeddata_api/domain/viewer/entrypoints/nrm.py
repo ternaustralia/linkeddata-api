@@ -9,7 +9,7 @@ def get_optional_value(row: dict, key: str) -> Optional[str]:
 
 
 def get(
-    sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+    sparql_endpoint: str,
 ) -> schema.Item:
     """Get
 
