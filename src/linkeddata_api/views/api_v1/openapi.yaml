@@ -108,7 +108,7 @@ paths:
               schema:
                 type: string
 
-  /ld_viewer/resource:
+  /viewer/resource:
     get:
       tags:
         - Linked Data viewer
@@ -135,6 +135,9 @@ paths:
             nrm_index:
               summary: NRM vocab URI
               value: https://linked.data.gov.au/def/nrm
+            nrm_feature_types:
+              summary: NRM feature types collection
+              value: https://linked.data.gov.au/def/test/dawe-cv/31a9f83d-9c8b-4d68-8dd7-d1b7a9a4197b
         - in: query
           name: format
           schema:

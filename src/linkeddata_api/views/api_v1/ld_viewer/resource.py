@@ -11,7 +11,7 @@ from linkeddata_api.domain.ld_viewer.resource import (
 )
 
 
-@bp.get("/ld_viewer/resource")
+@bp.get("/viewer/resource")
 @openapi.validate(validate_request=False, validate_response=False)
 def get_resource():
     sparql_endpoint = request.args.get("sparql_endpoint")
