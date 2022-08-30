@@ -27,7 +27,7 @@ def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[
             result = data.sparql.post(
                 query,
                 sparql_endpoint,
-            )
+            ).json()
 
             for result_row in result["results"]["bindings"]:
                 new_uris.append(result_row)
