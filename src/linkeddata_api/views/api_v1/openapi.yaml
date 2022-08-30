@@ -120,7 +120,7 @@ paths:
           schema: 
             type: string
           required: true
-          description: The SPARQL endpoint for querying\.
+          description: The SPARQL endpoint for querying.
           examples:
             nrm_vocabs:
               summary: NRM vocabs SPARQL endpoint
@@ -136,10 +136,24 @@ paths:
               summary: NRM vocab URI
               value: https://linked.data.gov.au/def/nrm
         - in: query
+          name: format
+          schema:
+            type: string
+          description: The format of the response value. This takes precedence over the request accept header.
+          examples:
+            text/turtle:
+              value: text/turtle
+            application/n-triples:
+              value: application/n-triples
+            application/json:
+              value: application/json
+            application/ld+json:
+              value: application/ld+json
+        - in: query
           name: include_incoming_relationships
           schema:
             type: string
-          description: Include incoming relationships
+          description: Include incoming relationships. This defaults to `false` if the `format` query parameter is `application/json`.
           examples:
             true:
               value: true
@@ -159,6 +173,12 @@ paths:
           description: Resource of URI not found.
           content:
             text/html:
+              schema:
+                type: string
+        "500":
+          description: Internal server error
+          content:
+            text/plain:
               schema:
                 type: string
         "502":

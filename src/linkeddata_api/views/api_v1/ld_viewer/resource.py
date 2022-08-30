@@ -1,11 +1,14 @@
-import requests
 from flask import request, Response
 from werkzeug.exceptions import HTTPException
 from flask_tern import openapi
-from rdflib import URIRef
 
 from linkeddata_api.views.api_v1.blueprint import bp
-from linkeddata_api import rdf
+from linkeddata_api import domain
+from linkeddata_api.domain.ld_viewer.resource import (
+    RequestError,
+    SPARQLNotFoundError,
+    SPARQLResultJSONError,
+)
 
 
 @bp.get("/ld_viewer/resource")
@@ -13,9 +16,8 @@ from linkeddata_api import rdf
 def get_resource():
     sparql_endpoint = request.args.get("sparql_endpoint")
     uri = request.args.get("uri")
-    format_ = request.headers.get("accept")
-    # TODO: Support 'format' query arg? It would make it easier to configure persistent redirect services.
-    # TODO: Curently we don't support multiple format types.
+    format_ = request.args.get("format") or request.headers.get("accept")
+    # TODO: Curently we don't support multiple format types in accept headers.
     if not format_ or "," in format_:
         format_ = "text/turtle"
     include_incoming_relationships = request.args.get("include_incoming_relationships")
@@ -23,29 +25,21 @@ def get_resource():
         True if include_incoming_relationships == "true" else False
     )
 
-    response = requests.get(
-        sparql_endpoint,
-        headers={"accept": format_},
-        params={"query": f"DESCRIBE <{uri}>"},
-    )
-
     try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as err:
+        result = domain.ld_viewer.resource.get(
+            uri, sparql_endpoint, format_, include_incoming_relationships
+        )
+    except SPARQLNotFoundError as err:
+        raise HTTPException(err.description, Response(err.description, 404)) from err
+    except (RequestError, SPARQLResultJSONError) as err:
         raise HTTPException(
-            description=err.response.text,
-            response=Response(err.response.text, status=502),
+            description=err.description,
+            response=Response(err.description, status=502),
+        ) from err
+    except Exception as err:
+        raise HTTPException(
+            description=str(err),
+            response=Response(str(err), mimetype="text/plain", status=500),
         ) from err
 
-    graph = rdf.create_graph()
-
-    graph.parse(data=response.text, format=format_)
-
-    if len(graph) == 0:
-        return "Resource not found", 404
-
-    if not include_incoming_relationships:
-        graph.remove((None, None, URIRef(uri)))
-
-    result = graph.serialize(format=format_)
     return Response(result, mimetype=format_)

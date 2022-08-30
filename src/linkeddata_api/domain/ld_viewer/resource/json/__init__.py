@@ -1,9 +1,9 @@
 from rdflib import RDF
 
-from linkeddata_api.vocab_viewer import nrm
-from linkeddata_api.vocab_viewer.nrm.resource.exists_uri import exists_uri
-from linkeddata_api.vocab_viewer.nrm.resource.profiles import method_profile
-from linkeddata_api.vocab_viewer.nrm.resource.sort_property_objects import (
+from linkeddata_api import data, domain
+from linkeddata_api.domain.ld_viewer.resource.json.exists_uri import exists_uri
+from linkeddata_api.domain.ld_viewer.resource.json.profiles import method_profile
+from linkeddata_api.domain.ld_viewer.resource.json.sort_property_objects import (
     sort_property_objects,
 )
 
@@ -24,7 +24,7 @@ def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[
                     ?rest rdf:first ?o .
                 }}
             """
-            result = nrm.sparql.post(
+            result = data.sparql.post(
                 query,
                 sparql_endpoint,
             )
@@ -91,7 +91,7 @@ def _get_uri_label_index(
     result: dict, uri: str, sparql_endpoint: str
 ) -> dict[str, str]:
     uri_values, _ = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
-    uri_label_index = nrm.label.get_from_list(uri_values, sparql_endpoint)
+    uri_label_index = domain.label.get_from_list(uri_values, sparql_endpoint)
     return uri_label_index
 
 
@@ -99,13 +99,13 @@ def _get_uri_internal_index(
     result: dict, uri: str, sparql_endpoint: str
 ) -> dict[str, str]:
     uri_values, _ = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
-    uri_internal_index = nrm.internal_resource.get_from_list(
+    uri_internal_index = domain.internal_resource.get_from_list(
         uri_values, sparql_endpoint
     )
     return uri_internal_index
 
 
-def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
+def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
     query = f"""
         SELECT ?p ?o ?listItem ?listItemNumber
         WHERE {{
@@ -117,12 +117,11 @@ def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
         }}
     """
 
-    result = nrm.sparql.post(query, sparql_endpoint)
+    result = data.sparql.post(query, sparql_endpoint).json()
 
     try:
-
         result = _add_rows_for_rdf_list_items(result, uri, sparql_endpoint)
-        label = nrm.label.get(uri, sparql_endpoint) or uri
+        label = domain.label.get(uri, sparql_endpoint) or uri
         types, properties = _get_types_and_properties(result, uri, sparql_endpoint)
 
         profile = ""
@@ -135,19 +134,23 @@ def get(uri: str, sparql_endpoint: str) -> nrm.schema.Resource:
 
         incoming_properties = _get_incoming_properties(uri, sparql_endpoint)
 
-        return nrm.schema.Resource(
+        return domain.schema.Resource(
             uri=uri,
             profile=profile,
             label=label,
             types=types,
             properties=properties,
             # incoming_properties=incoming_properties,
-            incoming_properties=[] # TODO: 
+            incoming_properties=[],  # TODO:
         )
-    except nrm.exceptions.SPARQLNotFoundError as err:
+    except data.exceptions.SPARQLNotFoundError as err:
         raise err
     except Exception as err:
-        raise nrm.exceptions.SPARQLResultJSONError(
+        import traceback
+        import sys
+
+        print(traceback.format_exc())
+        raise data.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result.\n{result}\n{err}"
         ) from err
 
@@ -165,10 +168,10 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
         }}
     """
 
-    result = nrm.sparql.post(
+    result = data.sparql.post(
         query,
         sparql_endpoint,
-    )
+    ).json()
 
     uri_label_index = _get_uri_label_index(result, uri, sparql_endpoint)
     uri_internal_index = _get_uri_internal_index(result, uri, sparql_endpoint)
@@ -176,10 +179,10 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
     incoming_properties = []
 
     for row in result["results"]["bindings"]:
-        subject_label = uri_label_index.get(row["o"]["value"]) or nrm.curie.get(
+        subject_label = uri_label_index.get(row["o"]["value"]) or domain.curie.get(
             row["o"]["value"]
         )
-        item = nrm.schema.URI(
+        item = domain.schema.URI(
             label=subject_label,
             value=row["o"]["value"],
             internal=uri_internal_index.get(row["o"]["value"], False),
@@ -188,8 +191,8 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
             if row["listItem"]["value"] == "true"
             else None,
         )
-        predicate_label = nrm.curie.get(row["p"]["value"])
-        predicate = nrm.schema.URI(
+        predicate_label = domain.curie.get(row["p"]["value"])
+        predicate = domain.schema.URI(
             label=predicate_label,
             value=row["p"]["value"],
             internal=uri_internal_index.get(row["p"]["value"], False),
@@ -207,7 +210,7 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
 
         if not found:
             incoming_properties.append(
-                nrm.schema.SubjectPredicates(predicate=predicate, subjects=[item])
+                domain.schema.SubjectPredicates(predicate=predicate, subjects=[item])
             )
 
     return incoming_properties
@@ -215,10 +218,10 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
 
 def _get_types_and_properties(
     result: dict, uri: str, sparql_endpoint: str
-) -> tuple[list[nrm.schema.URI], list[nrm.schema.PredicateObjects]]:
+) -> tuple[list[domain.schema.URI], list[domain.schema.PredicateObjects]]:
 
-    types: list[nrm.schema.URI] = []
-    properties: list[nrm.schema.PredicateObjects] = []
+    types: list[domain.schema.URI] = []
+    properties: list[domain.schema.PredicateObjects] = []
 
     # An index of URIs with label values.
     uri_label_index = _get_uri_label_index(result, uri, sparql_endpoint)
@@ -227,23 +230,23 @@ def _get_types_and_properties(
     uri_internal_index = _get_uri_internal_index(result, uri, sparql_endpoint)
 
     if not uri_internal_index.get(uri):
-        raise nrm.exceptions.SPARQLNotFoundError(f"Resource with URI {uri} not found.")
+        raise data.exceptions.SPARQLNotFoundError(f"Resource with URI {uri} not found.")
 
     for row in result["results"]["bindings"]:
         if row["p"]["value"] == str(RDF.type):
-            type_label = uri_label_index.get(row["o"]["value"]) or nrm.curie.get(
+            type_label = uri_label_index.get(row["o"]["value"]) or domain.curie.get(
                 row["o"]["value"]
             )
             types.append(
-                nrm.schema.URI(
+                domain.schema.URI(
                     label=type_label,
                     value=row["o"]["value"],
                     internal=uri_internal_index.get(row["o"]["value"], False),
                 )
             )
         else:
-            predicate_label = nrm.curie.get(row["p"]["value"])
-            predicate = nrm.schema.URI(
+            predicate_label = domain.curie.get(row["p"]["value"])
+            predicate = domain.schema.URI(
                 label=predicate_label,
                 value=row["p"]["value"],
                 internal=uri_internal_index.get(row["p"]["value"], False),
@@ -253,10 +256,10 @@ def _get_types_and_properties(
                 else None,
             )
             if row["o"]["type"] == "uri":
-                object_label = uri_label_index.get(row["o"]["value"]) or nrm.curie.get(
+                object_label = uri_label_index.get(
                     row["o"]["value"]
-                )
-                item = nrm.schema.URI(
+                ) or domain.curie.get(row["o"]["value"])
+                item = domain.schema.URI(
                     label=object_label,
                     value=row["o"]["value"],
                     internal=uri_internal_index.get(row["o"]["value"], False),
@@ -268,7 +271,7 @@ def _get_types_and_properties(
             elif row["o"]["type"] == "literal":
                 datatype = row["o"].get("datatype", "")
                 if datatype:
-                    datatype = nrm.schema.URI(
+                    datatype = domain.schema.URI(
                         label=datatype,
                         value=datatype,
                         internal=uri_internal_index.get(datatype, False),
@@ -280,7 +283,7 @@ def _get_types_and_properties(
                 else:
                     datatype = None
 
-                item = nrm.schema.Literal(
+                item = domain.schema.Literal(
                     value=row["o"]["value"],
                     datatype=datatype,
                     language=row["o"].get("xml:lang", ""),
@@ -305,7 +308,7 @@ def _get_types_and_properties(
 
             if not found:
                 properties.append(
-                    nrm.schema.PredicateObjects(predicate=predicate, objects=[item])
+                    domain.schema.PredicateObjects(predicate=predicate, objects=[item])
                 )
 
     # Duplicates may occur due to processing RDF lists.

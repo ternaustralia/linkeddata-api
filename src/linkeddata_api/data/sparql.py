@@ -13,6 +13,7 @@ def post(
     :param query: SPARQL query
     :param sparql_endpoint: SPARQL endpoint to query
     :param accept: The mimetype of the response value
+    :return: Response object
     :raises exceptions.RequestError: An error occurred and the response status code is not in the 200 range.
     """
     headers = {
@@ -42,6 +43,7 @@ def get(
     :param query: SPARQL query
     :param sparql_endpoint: SPARQL endpoint to query
     :param accept: The mimetype of the response value
+    :return: Response object
     :raises exceptions.RequestError: An error occurred and the response status code is not in the 200 range.
     """
     headers = {
