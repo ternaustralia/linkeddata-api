@@ -1,3 +1,5 @@
+import logging
+
 from rdflib import RDF
 
 from linkeddata_api import data, domain
@@ -6,8 +8,12 @@ from linkeddata_api.domain.viewer.resource.json.profiles import method_profile
 from linkeddata_api.domain.viewer.resource.json.sort_property_objects import (
     sort_property_objects,
 )
+from linkeddata_api.log_time import log_time
+
+logger = logging.getLogger(__name__)
 
 
+@log_time
 def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[str]:
     new_uris = []
     for row in rows:
@@ -35,6 +41,7 @@ def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[
     return new_uris
 
 
+@log_time
 def _get_uri_values_and_list_items(
     result: dict, uri: str, sparql_endpoint: str
 ) -> tuple[list[str], list[str]]:
@@ -56,6 +63,7 @@ def _get_uri_values_and_list_items(
     return uri_values, list_items
 
 
+@log_time
 def _add_rows_for_rdf_list_items(result: dict, uri: str, sparql_endpoint: str) -> dict:
     """Add rdf:List items as new rows to the SPARQL result object
 
@@ -87,6 +95,7 @@ def _add_rows_for_rdf_list_items(result: dict, uri: str, sparql_endpoint: str) -
     return result
 
 
+@log_time
 def _get_uri_label_index(
     result: dict, uri: str, sparql_endpoint: str
 ) -> dict[str, str]:
@@ -95,6 +104,7 @@ def _get_uri_label_index(
     return uri_label_index
 
 
+@log_time
 def _get_uri_internal_index(
     result: dict, uri: str, sparql_endpoint: str
 ) -> dict[str, str]:
@@ -105,6 +115,7 @@ def _get_uri_internal_index(
     return uri_internal_index
 
 
+@log_time
 def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
     query = f"""
         SELECT ?p ?o ?listItem ?listItemNumber
@@ -151,6 +162,7 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
         ) from err
 
 
+@log_time
 def _get_incoming_properties(uri: str, sparql_endpoint: str):
     query = f"""
         SELECT ?p ?o ?listItem ?listItemNumber
@@ -175,9 +187,10 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
     incoming_properties = []
 
     for row in result["results"]["bindings"]:
-        subject_label = uri_label_index.get(row["o"]["value"]) or domain.curie.get(
-            row["o"]["value"]
-        )
+        # subject_label = uri_label_index.get(row["o"]["value"]) or domain.curie.get(
+        #     row["o"]["value"]
+        # )
+        subject_label = uri_label_index.get(row["o"]["value"]) or row["o"]["value"]
         item = domain.schema.URI(
             label=subject_label,
             value=row["o"]["value"],
@@ -212,6 +225,7 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
     return incoming_properties
 
 
+@log_time
 def _get_types_and_properties(
     result: dict, uri: str, sparql_endpoint: str
 ) -> tuple[list[domain.schema.URI], list[domain.schema.PredicateObjects]]:
@@ -252,9 +266,12 @@ def _get_types_and_properties(
                 else None,
             )
             if row["o"]["type"] == "uri":
-                object_label = uri_label_index.get(
-                    row["o"]["value"]
-                ) or domain.curie.get(row["o"]["value"])
+                # object_label = uri_label_index.get(
+                #     row["o"]["value"]
+                # ) or domain.curie.get(row["o"]["value"])
+                object_label = (
+                    uri_label_index.get(row["o"]["value"]) or row["o"]["value"]
+                )
                 item = domain.schema.URI(
                     label=object_label,
                     value=row["o"]["value"],

@@ -1,3 +1,5 @@
+import logging
+
 from flask import request, Response
 from werkzeug.exceptions import HTTPException
 from flask_tern import openapi
@@ -9,6 +11,8 @@ from linkeddata_api.domain.viewer.resource import (
     SPARQLNotFoundError,
     SPARQLResultJSONError,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @bp.get("/viewer/resource")
@@ -23,6 +27,25 @@ def get_resource():
     include_incoming_relationships = request.args.get("include_incoming_relationships")
     include_incoming_relationships = (
         True if include_incoming_relationships == "true" else False
+    )
+
+    logger.info(
+        """
+GET /viewer/resource
+    query parameters:
+        uri: 
+            %s
+        sparql_endpoint:
+            %s
+        format:
+            %s
+        include_incoming_relationships:
+            %s
+        """,
+        uri,
+        sparql_endpoint,
+        format_,
+        include_incoming_relationships,
     )
 
     try:

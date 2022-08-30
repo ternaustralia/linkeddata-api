@@ -1,4 +1,8 @@
+import logging
+
 import requests
+
+logger = logging.getLogger(__name__)
 
 # URIs that don't have curies in external service.
 not_found = {}
@@ -14,10 +18,13 @@ prefixes = {
     "http://www.w3.org/2001/XMLSchema#": "xsd",
 }
 
-# Don't find curies for these.
+# Don't find curies for these - speeds up request processing.
+# TODO: these may no longer be needed since we don't fetch for subjects or objects of an RDF statement anymore.
 skips = [
     "https://linked.data.gov.au/def/nrm",
     "https://linked.data.gov.au/def/test/dawe-cv",
+    "http://linked.data.gov.au/dataset",
+    "https://linked.data.gov.au/dataset",
 ]
 
 
@@ -49,6 +56,7 @@ def get(uri: str):
     if uri_in_skips(uri):
         return uri
 
+    logger.info("Fetching curie from external service - %s", uri)
     localname = uri.split("#")[-1].split("/")[-1]
     r_index = uri.rfind(localname)
     base_uri = uri[:r_index]
@@ -65,4 +73,7 @@ def get(uri: str):
 
     prefix = response.json()["value"][:-1]
     prefixes[base_uri] = prefix
-    return f"{prefix}:{localname}"
+    curie = f"{prefix}:{localname}"
+    logger.info("Curie fetch completed for %s, found %s", uri, curie)
+
+    return curie
