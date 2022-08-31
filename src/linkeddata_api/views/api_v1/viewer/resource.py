@@ -29,6 +29,10 @@ def get_resource():
         True if include_incoming_relationships == "true" else False
     )
 
+    if uri is None or sparql_endpoint is None:
+        err_msg = "Required query parameters 'uri' or 'sparql_endpoint' was not provided."
+        raise HTTPException(err_msg, Response(err_msg, 404))
+
     logger.info(
         """
 GET /viewer/resource
@@ -65,4 +69,8 @@ GET /viewer/resource
             response=Response(str(err), mimetype="text/plain", status=500),
         ) from err
 
-    return Response(result, mimetype=format_)
+    return Response(
+        result,
+        mimetype=format_,
+        headers={"cache-control": "max-age=600, s-maxage=3600"},
+    )

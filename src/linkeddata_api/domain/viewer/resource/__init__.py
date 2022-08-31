@@ -9,7 +9,7 @@ from linkeddata_api.data.exceptions import (
 from . import json
 
 
-def _handle_json_response(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
+def _handle_json_response(uri: str, sparql_endpoint: str) -> str:
     try:
         result = json.get(uri, sparql_endpoint)
     except (RequestError, SPARQLNotFoundError, SPARQLResultJSONError) as err:
@@ -33,7 +33,7 @@ def _handle_rdf_response(
     graph.parse(data=response.text, format=format_)
 
     if len(graph) == 0:
-        return "Resource not found", 404
+        raise SPARQLNotFoundError(f"Resource with URI {uri} not found.")
 
     if not include_incoming_relationships:
         graph.remove((None, None, URIRef(uri)))

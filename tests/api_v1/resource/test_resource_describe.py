@@ -8,7 +8,7 @@ from rdflib import Graph
 
 @pytest.fixture
 def url() -> str:
-    return "/api/v1.0/resource"
+    return "/api/v1.0/viewer/resource"
 
 
 value = """
@@ -56,7 +56,7 @@ value = """
             "text/turtle",
             "text/turtle",
             "https://linked.data.gov.au/def/nrm",
-            "dawe_vocabs_core",
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             value,
             22,
@@ -68,10 +68,10 @@ value = """
             "text/turtle",
             "text/html",
             "https://linked.data.gov.au/def/nrm/not-exist",
-            "dawe_vocabs_core",
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             "",
-            22,
+            None,
         ),
         # RDF4J repository does not exist
         (
@@ -80,10 +80,10 @@ value = """
             "text/turtle",
             "text/html",
             "https://linked.data.gov.au/def/nrm",
-            "dawe_vocabs_core-not-exist",
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core-not-exist",
             "false",
             "",
-            22,
+            None,
         ),
         # Include incoming relationships
         (
@@ -92,10 +92,10 @@ value = """
             "text/turtle",
             "text/turtle",
             "https://linked.data.gov.au/def/nrm",
-            "dawe_vocabs_core",
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "true",
             value,
-            23,
+            3179,
         ),
         # No accepted format, default to text/turtle
         (
@@ -104,7 +104,7 @@ value = """
             "",
             "text/turtle",
             "https://linked.data.gov.au/def/nrm",
-            "dawe_vocabs_core",
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             value,
             22,
@@ -134,11 +134,11 @@ def test_describe(
     response: TestResponse = client.get(
         url,
         query_string={
-            "repository_id": repository_id,
+            "sparql_endpoint": repository_id,
             "uri": uri,
             "include_incoming_relationships": include_incoming_relationships,
+            "format": accept_format,
         },
-        headers={"accept": accept_format},
     )
     assert response.status_code == response_status_code
     assert expected_format in response.headers.get("content-type")
