@@ -1,7 +1,7 @@
 from typing import Optional
 
-from linkeddata_api.vocab_viewer import nrm
-from . import schema
+from linkeddata_api import data
+from linkeddata_api.domain import schema
 
 
 def get_optional_value(row: dict, key: str) -> Optional[str]:
@@ -9,7 +9,7 @@ def get_optional_value(row: dict, key: str) -> Optional[str]:
 
 
 def get(
-    sparql_endpoint: str = "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+    sparql_endpoint: str,
 ) -> schema.Item:
     """Get
 
@@ -45,7 +45,7 @@ def get(
         ORDER by ?label 
     """
 
-    result = nrm.sparql.post(query, sparql_endpoint)
+    result = data.sparql.post(query, sparql_endpoint).json()
 
     vocabs = []
 
@@ -61,7 +61,7 @@ def get(
                 )
             )
     except KeyError as err:
-        raise nrm.exceptions.SPARQLResultJSONError(
+        raise data.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result set.\n{result}\n{err}"
         ) from err
 

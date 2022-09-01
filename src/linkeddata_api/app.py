@@ -1,4 +1,5 @@
 import os
+import logging
 
 from flask import Flask, redirect, url_for
 
@@ -20,6 +21,9 @@ def create_app(config=None) -> Flask:
     ###################################################
     app = Flask("linkeddata_api")
     app.config["VERSION"] = version
+
+    if app.config["ENV"] == "development":
+        logging.basicConfig(level=logging.INFO)
 
     ###################################################
     # custom json encoder

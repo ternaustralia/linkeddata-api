@@ -6,3 +6,4 @@ from . import label
 from . import curie
 from . import internal_resource
 from . import namespaces
+from . import schema

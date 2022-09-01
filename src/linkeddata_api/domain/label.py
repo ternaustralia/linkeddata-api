@@ -2,7 +2,7 @@ from typing import Union
 
 from jinja2 import Template
 
-from linkeddata_api.vocab_viewer import nrm
+from linkeddata_api import data
 
 
 def get(
@@ -23,14 +23,14 @@ def get(
         }}
     """
 
-    result = nrm.sparql.post(query, sparql_endpoint)
+    result = data.sparql.post(query, sparql_endpoint).json()
 
     try:
         rows = result["results"]["bindings"]
         for row in rows:
             return row["label"]["value"]
     except KeyError as err:
-        raise nrm.exceptions.SPARQLResultJSONError(
+        raise data.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result set.\n{result}\n{err}"
         ) from err
 
@@ -76,7 +76,7 @@ def get_from_list(
     """
     query = _get_from_list_query(uris)
 
-    result = nrm.sparql.post(query, sparql_endpoint)
+    result = data.sparql.post(query, sparql_endpoint).json()
 
     labels = {}
 
@@ -91,7 +91,7 @@ def get_from_list(
         if result["results"]["bindings"] == [{}]:
             return {}
 
-        raise nrm.exceptions.SPARQLResultJSONError(
+        raise data.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result set.\n{result}\n{err}"
         ) from err
 

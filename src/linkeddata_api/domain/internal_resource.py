@@ -1,6 +1,6 @@
 from jinja2 import Template
 
-from linkeddata_api.vocab_viewer import nrm
+from linkeddata_api import data
 
 
 def _get_from_list_query(uris: list[str]) -> str:
@@ -28,7 +28,7 @@ def get_from_list(
 ) -> dict[str, str]:
     query = _get_from_list_query(uris)
 
-    result = nrm.sparql.post(query, sparql_endpoint)
+    result = data.sparql.post(query, sparql_endpoint).json()
 
     return_results = {}
 
@@ -40,7 +40,7 @@ def get_from_list(
             return_results[uri] = True if internal == "true" else False
 
     except KeyError as err:
-        raise nrm.exceptions.SPARQLResultJSONError(
+        raise data.exceptions.SPARQLResultJSONError(
             f"Unexpected SPARQL result set.\n{result}\n{err}"
         ) from err
 
