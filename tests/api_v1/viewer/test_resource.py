@@ -46,11 +46,10 @@ value = """
 
 
 @pytest.mark.parametrize(
-    "test_type, mocked_status_code, response_status_code, accept_format, expected_format, uri, repository_id, include_incoming_relationships, content",
+    "test_type, response_status_code, accept_format, expected_format, uri, repository_id, include_incoming_relationships, content",
     [
         (
             "Expected usage",
-            200,
             200,
             "text/turtle",
             "text/turtle",
@@ -61,7 +60,6 @@ value = """
         ),
         (
             "URI resource does not exist",
-            200,
             404,
             "text/turtle",
             "application/json",
@@ -72,7 +70,6 @@ value = """
         ),
         (
             "RDF4J repository does not exist",
-            415,
             502,
             "text/turtle",
             "application/json",
@@ -84,7 +81,6 @@ value = """
         (
             "Include incoming relationships",
             200,
-            200,
             "text/turtle",
             "text/turtle",
             "https://linked.data.gov.au/def/nrm",
@@ -95,13 +91,32 @@ value = """
         (
             "No accepted format, default to text/turtle",
             200,
-            200,
             "",
             "text/turtle",
             "https://linked.data.gov.au/def/nrm",
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             value,
+        ),
+        (
+            "uri query parameter not supplied",
+            400,
+            "",
+            "",
+            "",
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+            "false",
+            "",
+        ),
+        (
+            "sparql_endpoint query parameter not supplied",
+            400,
+            "",
+            "",
+            "https://linked.data.gov.au/def/nrm",
+            "",
+            "false",
+            "",
         ),
     ],
 )
@@ -110,7 +125,6 @@ def test(
     url: str,
     mocker: MockerFixture,
     test_type: str,
-    mocked_status_code: int,
     response_status_code: int,
     accept_format: str,
     expected_format: str,
@@ -120,7 +134,6 @@ def test(
     content: str,
 ):
     mocked_response = requests.Response()
-    mocked_response.status_code = mocked_status_code
     mocked_response._content = content.encode("utf-8")
 
     mocker.patch("requests.get", return_value=mocked_response)

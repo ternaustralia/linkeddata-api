@@ -252,24 +252,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Resource"
+        "400":
+          description: Client error
         "404":
           description: Resource of URI not found.
-          content:
-            text/html:
-              schema:
-                type: string
         "500":
           description: Internal server error
-          content:
-            text/plain:
-              schema:
-                type: string
         "502":
           description: Error communicating with the database.
-          content:
-            text/html:
-              schema:
-                type: string
 
   /ontology_viewer/classes/flat:
     get:
@@ -308,95 +298,6 @@ paths:
                 type: string
         "502":
           description: Gateway error
-
-  /vocab_viewer/nrm/vocabs:
-    get:
-      tags:
-        - NRM vocabularies
-      summary: Get a list of NRM protocol vocabularies
-      description: Get a list of concept schemes and collections for the NRM protocol.
-      responses:
-        "200":
-          description: A list of concept schemes and collections.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  title: Vocabulary item
-                  type: object
-                  properties:
-                    id:
-                      title: IRI of item
-                      type: string
-                    label:
-                      title: Label of item
-                      type: string
-                    description:
-                      title: The description of the item
-                      type: string
-                    created:
-                      title: The date when the resource was created
-                      type: string
-                    modified: 
-                      title: The date when the resource was modified
-                      type: string
-        "502":
-          description: Gateway error
-
-  /vocab_viewer/nrm/resource:
-    get:
-      tags: 
-        - NRM vocabularies
-      summary: Get a resource's description
-      description: A JSON payload used to render frontend user-interfaces.
-      parameters:
-        - in: query
-          name: uri
-          schema:
-            type: string
-          required: true
-          description: URI of the resource.
-          examples:
-            nrm:
-              summary: NRM index
-              value: https://linked.data.gov.au/def/nrm
-        - in: query
-          name: sparql_endpoint
-          schema:
-            type: string
-          required: true
-          description: SPARQL endpoint
-          examples:
-            nrm:
-              summary: NRM SPARQL endpoint
-              value: https://graphdb.tern.org.au/repositories/dawe_vocabs_core
-      responses:
-        "200":
-          description: A resource's description
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  uri:
-                    type: string
-                  label:
-                    type: string
-                  types:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/URI"
-                  properties:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/PredicateObjects"
-        "404":
-          description: Resource with URI not found
-          content:
-            text/plain:
-              schema:
-                type: string
   
   /rdf_tools/convert:
     post:

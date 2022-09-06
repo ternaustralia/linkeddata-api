@@ -28,11 +28,11 @@ def get_resource():
         True if include_incoming_relationships == "true" else False
     )
 
-    if uri is None or sparql_endpoint is None:
+    if not uri or not sparql_endpoint:
         err_msg = (
             "Required query parameters 'uri' or 'sparql_endpoint' was not provided."
         )
-        abort(404, err_msg)
+        abort(400, err_msg)
 
     logger.info(
         """
