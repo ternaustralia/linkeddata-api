@@ -12,16 +12,30 @@ def get(
     """
     Returns a label or None if no label found.
     """
-    query = f"""
+    template = Template(
+        """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        PREFIX dcterms: <http://purl.org/dc/terms/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX schema: <https://schema.org/>
+        PREFIX sdo: <http://schema.org/>
+
         SELECT DISTINCT ?label
-        WHERE {{
-            VALUES (?labelProperty) {{
+        WHERE {
+            VALUES (?labelProperty) {
                 (skos:prefLabel)
-            }}
-            <{uri}> ?labelProperty ?label .
-        }}
+                (rdfs:label)
+                (dcterms:title)
+                (schema:name)
+                (sdo:name)
+                (dcterms:identifier)
+            }
+            <{{ uri }}> ?labelProperty ?label .
+        }
+        LIMIT 1
     """
+    )
+    query = template.render(uri=uri)
 
     result = data.sparql.post(query, sparql_endpoint).json()
 
@@ -41,28 +55,37 @@ def _get_from_list_query(uris: list[str]) -> str:
     template = Template(
         """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-        SELECT DISTINCT ?uri (SAMPLE(?_label) AS ?label)
+        PREFIX dcterms: <http://purl.org/dc/terms/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX schema: <https://schema.org/>
+        PREFIX sdo: <http://schema.org/>
+
+        SELECT DISTINCT ?uri ?label
         WHERE {
-            VALUES (?uri) {
-                {% for uri in uris %}
-                (<{{ uri }}>)
-                {% endfor %}
-            }
-            
+            {% for uri in uris %}
             {
-                ?uri skos:prefLabel ?_label .        
-            }
-            UNION {
-                # Also try and fetch label from TERN's controlled vocabularies.
-                SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
-                    ?uri skos:prefLabel ?_label .
+                SELECT DISTINCT ?uri ?label
+                WHERE {
+                    BIND(<{{ uri }}> as ?uri)
+                    VALUES (?labelProperty) {
+                        (skos:prefLabel)
+                        (rdfs:label)
+                        (dcterms:title)
+                        (schema:name)
+                        (sdo:name)
+                        (dcterms:identifier)
+                    }
+                    ?uri ?labelProperty ?label .
                 }
+                LIMIT 1
             }
+            {% if not loop.last %}UNION{% endif %}
+            {% endfor %}
         }
-        GROUP BY ?uri
     """
     )
-    return template.render(uris=uris)
+    query = template.render(uris=uris)
+    return query
 
 
 def get_from_list(
