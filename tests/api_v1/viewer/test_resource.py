@@ -3,7 +3,6 @@ from pytest_mock import MockerFixture
 from flask.testing import FlaskClient
 from werkzeug.test import TestResponse
 import requests
-from rdflib import Graph
 
 
 @pytest.fixture
@@ -47,10 +46,10 @@ value = """
 
 
 @pytest.mark.parametrize(
-    "mocked_status_code, response_status_code, accept_format, expected_format, uri, repository_id, include_incoming_relationships, content, expected_triples_count",
+    "test_type, mocked_status_code, response_status_code, accept_format, expected_format, uri, repository_id, include_incoming_relationships, content",
     [
-        # Expected usage
         (
+            "Expected usage",
             200,
             200,
             "text/turtle",
@@ -59,34 +58,31 @@ value = """
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             value,
-            22,
         ),
-        # URI resource does not exist
         (
+            "URI resource does not exist",
             200,
             404,
             "text/turtle",
-            "text/html",
+            "application/json",
             "https://linked.data.gov.au/def/nrm/not-exist",
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             "",
-            None,
         ),
-        # RDF4J repository does not exist
         (
+            "RDF4J repository does not exist",
             415,
             502,
             "text/turtle",
-            "text/html",
+            "application/json",
             "https://linked.data.gov.au/def/nrm",
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core-not-exist",
             "false",
             "",
-            None,
         ),
-        # Include incoming relationships
         (
+            "Include incoming relationships",
             200,
             200,
             "text/turtle",
@@ -95,10 +91,9 @@ value = """
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "true",
             value,
-            3179,
         ),
-        # No accepted format, default to text/turtle
         (
+            "No accepted format, default to text/turtle",
             200,
             200,
             "",
@@ -107,14 +102,14 @@ value = """
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             value,
-            22,
         ),
     ],
 )
-def test_describe(
+def test(
     client: FlaskClient,
     url: str,
     mocker: MockerFixture,
+    test_type: str,
     mocked_status_code: int,
     response_status_code: int,
     accept_format: str,
@@ -123,7 +118,6 @@ def test_describe(
     repository_id: str,
     include_incoming_relationships,
     content: str,
-    expected_triples_count: int,
 ):
     mocked_response = requests.Response()
     mocked_response.status_code = mocked_status_code
@@ -140,10 +134,5 @@ def test_describe(
             "format": accept_format,
         },
     )
-    assert response.status_code == response_status_code
-    assert expected_format in response.headers.get("content-type")
-
-    if response.status_code == 200:
-        graph = Graph()
-        graph.parse(data=response.text, format=expected_format)
-        assert len(graph) == expected_triples_count
+    assert response.status_code == response_status_code, test_type
+    assert expected_format in response.headers.get("content-type"), test_type

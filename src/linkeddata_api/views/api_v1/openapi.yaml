@@ -56,10 +56,14 @@ components:
             type: string
           created:
             title: The date when the resource was created
-            type: string
+            oneOf:
+              - type: string
+            nullable: true
           modified: 
             title: The date when the resource was modified
-            type: string
+            oneOf:
+              - type: string
+            nullable: true
     Resource:
       title: Resource
       type: object
@@ -174,6 +178,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EntrypointItemList"
+        "404":
+          description: The supplied `viewer_id` value was not found
         "502":
           description: Gateway error
   /viewer/resource:

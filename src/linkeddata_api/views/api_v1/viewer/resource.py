@@ -1,7 +1,6 @@
 import logging
 
-from flask import request, Response
-from werkzeug.exceptions import HTTPException
+from flask import request, Response, abort
 from flask_tern import openapi
 
 from linkeddata_api.views.api_v1.blueprint import bp
@@ -30,8 +29,10 @@ def get_resource():
     )
 
     if uri is None or sparql_endpoint is None:
-        err_msg = "Required query parameters 'uri' or 'sparql_endpoint' was not provided."
-        raise HTTPException(err_msg, Response(err_msg, 404))
+        err_msg = (
+            "Required query parameters 'uri' or 'sparql_endpoint' was not provided."
+        )
+        abort(404, err_msg)
 
     logger.info(
         """
@@ -57,17 +58,11 @@ GET /viewer/resource
             uri, sparql_endpoint, format_, include_incoming_relationships
         )
     except SPARQLNotFoundError as err:
-        raise HTTPException(err.description, Response(err.description, 404)) from err
+        abort(404, err.description)
     except (RequestError, SPARQLResultJSONError) as err:
-        raise HTTPException(
-            description=err.description,
-            response=Response(err.description, status=502),
-        ) from err
+        abort(502, err.description)
     except Exception as err:
-        raise HTTPException(
-            description=str(err),
-            response=Response(str(err), mimetype="text/plain", status=500),
-        ) from err
+        abort(500, err)
 
     return Response(
         result,
