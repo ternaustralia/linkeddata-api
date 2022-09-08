@@ -244,16 +244,21 @@ def _get_types_and_properties(
 
     for row in result["results"]["bindings"]:
         if row["p"]["value"] == str(RDF.type):
-            type_label = uri_label_index.get(row["o"]["value"]) or domain.curie.get(
-                row["o"]["value"]
-            )
-            types.append(
-                domain.schema.URI(
-                    label=type_label,
-                    value=row["o"]["value"],
-                    internal=uri_internal_index.get(row["o"]["value"], False),
+            if row["o"]["type"] != "bnode":
+                type_label = uri_label_index.get(row["o"]["value"]) or domain.curie.get(
+                    row["o"]["value"]
                 )
-            )
+                types.append(
+                    domain.schema.URI(
+                        label=type_label,
+                        value=row["o"]["value"],
+                        internal=uri_internal_index.get(row["o"]["value"], False),
+                    )
+                )
+            else:
+                # TODO: handle types that have bnode values
+                # E.g. /viewers/general?uri=http://linked.data.gov.au/dataset/ausplots/site-ntabrt0001&sparql_endpoint=https://graphdb.tern.org.au/repositories/knowledge_graph_core
+                continue
         else:
             predicate_label = domain.curie.get(row["p"]["value"])
             predicate = domain.schema.URI(
@@ -317,7 +322,8 @@ def _get_types_and_properties(
             for p in properties:
                 if p.predicate.value == predicate.value:
                     found = True
-                    p.objects.append(item)
+                    if item not in p.objects:
+                        p.objects.append(item)
 
             if not found:
                 properties.append(

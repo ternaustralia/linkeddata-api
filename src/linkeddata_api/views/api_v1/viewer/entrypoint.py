@@ -1,5 +1,4 @@
-from flask import Response
-from werkzeug.exceptions import HTTPException
+from flask import abort
 from flask_tern import openapi
 
 from linkeddata_api.views.api_v1.blueprint import bp
@@ -31,10 +30,10 @@ def get_entrypoint(viewer_id: str):
         sparql_endpoint = obj["sparql_endpoint"]
         items = obj["func"](sparql_endpoint)
     except ViewerIDNotFoundError as err:
-        raise HTTPException(str(err), Response(str(err), 404)) from err
+        abort(404, str(err))
     except (RequestError, SPARQLResultJSONError) as err:
-        raise HTTPException(err.description, Response(err.description, 502)) from err
+        abort(502, err.description)
     except Exception as err:
-        raise HTTPException(str(err), Response(str(err), 500)) from err
+        abort(500, err)
 
     return jsonify(items, headers={"cache-control": "max-age=600, s-maxage=3600"})

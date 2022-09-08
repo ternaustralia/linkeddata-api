@@ -3,7 +3,6 @@ from pytest_mock import MockerFixture
 from flask.testing import FlaskClient
 from werkzeug.test import TestResponse
 import requests
-from rdflib import Graph
 
 
 @pytest.fixture
@@ -47,11 +46,10 @@ value = """
 
 
 @pytest.mark.parametrize(
-    "mocked_status_code, response_status_code, accept_format, expected_format, uri, repository_id, include_incoming_relationships, content, expected_triples_count",
+    "test_type, response_status_code, accept_format, expected_format, uri, repository_id, include_incoming_relationships, content",
     [
-        # Expected usage
         (
-            200,
+            "Expected usage",
             200,
             "text/turtle",
             "text/turtle",
@@ -59,35 +57,29 @@ value = """
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             value,
-            22,
         ),
-        # URI resource does not exist
         (
-            200,
+            "URI resource does not exist",
             404,
             "text/turtle",
-            "text/html",
+            "application/json",
             "https://linked.data.gov.au/def/nrm/not-exist",
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             "",
-            None,
         ),
-        # RDF4J repository does not exist
         (
-            415,
+            "RDF4J repository does not exist",
             502,
             "text/turtle",
-            "text/html",
+            "application/json",
             "https://linked.data.gov.au/def/nrm",
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core-not-exist",
             "false",
             "",
-            None,
         ),
-        # Include incoming relationships
         (
-            200,
+            "Include incoming relationships",
             200,
             "text/turtle",
             "text/turtle",
@@ -95,11 +87,9 @@ value = """
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "true",
             value,
-            3179,
         ),
-        # No accepted format, default to text/turtle
         (
-            200,
+            "No accepted format, default to text/turtle",
             200,
             "",
             "text/turtle",
@@ -107,15 +97,34 @@ value = """
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
             "false",
             value,
-            22,
+        ),
+        (
+            "uri query parameter not supplied",
+            400,
+            "",
+            "",
+            "",
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+            "false",
+            "",
+        ),
+        (
+            "sparql_endpoint query parameter not supplied",
+            400,
+            "",
+            "",
+            "https://linked.data.gov.au/def/nrm",
+            "",
+            "false",
+            "",
         ),
     ],
 )
-def test_describe(
+def test(
     client: FlaskClient,
     url: str,
     mocker: MockerFixture,
-    mocked_status_code: int,
+    test_type: str,
     response_status_code: int,
     accept_format: str,
     expected_format: str,
@@ -123,10 +132,8 @@ def test_describe(
     repository_id: str,
     include_incoming_relationships,
     content: str,
-    expected_triples_count: int,
 ):
     mocked_response = requests.Response()
-    mocked_response.status_code = mocked_status_code
     mocked_response._content = content.encode("utf-8")
 
     mocker.patch("requests.get", return_value=mocked_response)
@@ -140,10 +147,5 @@ def test_describe(
             "format": accept_format,
         },
     )
-    assert response.status_code == response_status_code
-    assert expected_format in response.headers.get("content-type")
-
-    if response.status_code == 200:
-        graph = Graph()
-        graph.parse(data=response.text, format=expected_format)
-        assert len(graph) == expected_triples_count
+    assert response.status_code == response_status_code, test_type
+    assert expected_format in response.headers.get("content-type"), test_type
