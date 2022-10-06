@@ -67,7 +67,9 @@ def get(ontology_id: str) -> List[schema.ClassItem]:
         "content-type": "application/sparql-query",
     }
 
-    r = requests.post(url=mapping["sparql_endpoint"], headers=headers, data=query)
+    r = requests.post(
+        url=mapping["sparql_endpoint"], headers=headers, data=query, timeout=60
+    )
 
     try:
         r.raise_for_status()

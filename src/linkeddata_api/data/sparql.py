@@ -21,7 +21,7 @@ def post(
         "content-type": "application/sparql-query",
     }
 
-    response = requests.post(url=sparql_endpoint, headers=headers, data=query)
+    response = requests.post(url=sparql_endpoint, headers=headers, data=query, timeout=60)
 
     try:
         response.raise_for_status()
@@ -51,7 +51,7 @@ def get(
     }
     params = {"query": query}
 
-    response = requests.get(url=sparql_endpoint, headers=headers, params=params)
+    response = requests.get(url=sparql_endpoint, headers=headers, params=params, timeout=60)
 
     try:
         response.raise_for_status()
