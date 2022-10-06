@@ -62,7 +62,7 @@ def get(uri: str):
     base_uri = uri[:r_index]
 
     response = requests.post(
-        "https://prefix.zazuko.com/api/v1/shrink", params={"q": base_uri}
+        "https://prefix.zazuko.com/api/v1/shrink", params={"q": base_uri}, timeout=60
     )
 
     try:
