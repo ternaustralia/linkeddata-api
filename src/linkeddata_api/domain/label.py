@@ -12,6 +12,8 @@ def get(
     """
     Returns a label or None if no label found.
     """
+    # TODO: Currently, we try and fetch from TERN's controlled vocabularies.
+    # We may want to also fetch with a SERVICE query from other repositories in the future.
     template = Template(
         """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -22,15 +24,30 @@ def get(
 
         SELECT DISTINCT ?label
         WHERE {
-            VALUES (?labelProperty) {
-                (skos:prefLabel)
-                (rdfs:label)
-                (dcterms:title)
-                (schema:name)
-                (sdo:name)
-                (dcterms:identifier)
+            {
+                VALUES (?labelProperty) {
+                    (skos:prefLabel)
+                    (rdfs:label)
+                    (dcterms:title)
+                    (schema:name)
+                    (sdo:name)
+                    (dcterms:identifier)
+                }
+                <{{ uri }}> ?labelProperty ?label .
             }
-            <{{ uri }}> ?labelProperty ?label .
+            UNION {
+                SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
+                    VALUES (?labelProperty) {
+                        (skos:prefLabel)
+                        (rdfs:label)
+                        (dcterms:title)
+                        (schema:name)
+                        (sdo:name)
+                        (dcterms:identifier)
+                    }
+                    <http://linked.data.gov.au/def/tern-cv/06461021-a6c2-4175-9651-23653c2b9116> ?labelProperty ?label .
+                }
+            }
         }
         LIMIT 1
     """
@@ -66,16 +83,32 @@ def _get_from_list_query(uris: list[str]) -> str:
             {
                 SELECT DISTINCT ?uri ?label
                 WHERE {
-                    BIND(<{{ uri }}> as ?uri)
-                    VALUES (?labelProperty) {
-                        (skos:prefLabel)
-                        (rdfs:label)
-                        (dcterms:title)
-                        (schema:name)
-                        (sdo:name)
-                        (dcterms:identifier)
+                    {
+                        BIND(<{{ uri }}> as ?uri)
+                        VALUES (?labelProperty) {
+                            (skos:prefLabel)
+                            (rdfs:label)
+                            (dcterms:title)
+                            (schema:name)
+                            (sdo:name)
+                            (dcterms:identifier)
+                        }
+                        ?uri ?labelProperty ?label .
                     }
-                    ?uri ?labelProperty ?label .
+                    UNION {
+                        SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
+                            BIND(<{{ uri }}> as ?uri)
+                            VALUES (?labelProperty) {
+                                (skos:prefLabel)
+                                (rdfs:label)
+                                (dcterms:title)
+                                (schema:name)
+                                (sdo:name)
+                                (dcterms:identifier)
+                            }
+                            ?uri ?labelProperty ?label .
+                        }
+                    }
                 }
                 LIMIT 1
             }
