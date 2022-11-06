@@ -25,6 +25,7 @@ def get(
         SELECT DISTINCT ?label
         WHERE {
             {
+                BIND(<{{ uri }}> as ?uri)
                 VALUES (?labelProperty) {
                     (skos:prefLabel)
                     (rdfs:label)
@@ -33,10 +34,11 @@ def get(
                     (sdo:name)
                     (dcterms:identifier)
                 }
-                <{{ uri }}> ?labelProperty ?label .
+                ?uri ?labelProperty ?label .
             }
             UNION {
                 SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
+                    BIND(<{{ uri }}> as ?uri)
                     VALUES (?labelProperty) {
                         (skos:prefLabel)
                         (rdfs:label)
@@ -45,7 +47,7 @@ def get(
                         (sdo:name)
                         (dcterms:identifier)
                     }
-                    <http://linked.data.gov.au/def/tern-cv/06461021-a6c2-4175-9651-23653c2b9116> ?labelProperty ?label .
+                    ?uri ?labelProperty ?label .
                 }
             }
         }
