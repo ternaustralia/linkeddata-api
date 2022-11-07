@@ -36,6 +36,7 @@ def get(
                 }
                 ?uri ?labelProperty ?label .
             }
+            {% if uri.startswith('http://linked.data.gov.au/def/tern-cv/') %}
             UNION {
                 SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
                     BIND(<{{ uri }}> as ?uri)
@@ -50,6 +51,7 @@ def get(
                     ?uri ?labelProperty ?label .
                 }
             }
+            {% endif %}
         }
         LIMIT 1
     """
@@ -97,6 +99,7 @@ def _get_from_list_query(uris: list[str]) -> str:
                         }
                         ?uri ?labelProperty ?label .
                     }
+                    {% if uri.startswith('http://linked.data.gov.au/def/tern-cv/') %}
                     UNION {
                         SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
                             BIND(<{{ uri }}> as ?uri)
@@ -111,6 +114,7 @@ def _get_from_list_query(uris: list[str]) -> str:
                             ?uri ?labelProperty ?label .
                         }
                     }
+                    {% endif %}
                 }
                 LIMIT 1
             }
