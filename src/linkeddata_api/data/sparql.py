@@ -1,8 +1,10 @@
 import requests
 
 from . import exceptions
+from linkeddata_api.log_time import log_time
 
 
+@log_time
 def post(
     query: str, sparql_endpoint: str, accept: str = "application/sparql-results+json"
 ) -> requests.Response:
@@ -21,7 +23,9 @@ def post(
         "content-type": "application/sparql-query",
     }
 
-    response = requests.post(url=sparql_endpoint, headers=headers, data=query, timeout=60)
+    response = requests.post(
+        url=sparql_endpoint, headers=headers, data=query, timeout=60
+    )
 
     try:
         response.raise_for_status()
@@ -51,7 +55,9 @@ def get(
     }
     params = {"query": query}
 
-    response = requests.get(url=sparql_endpoint, headers=headers, params=params, timeout=60)
+    response = requests.get(
+        url=sparql_endpoint, headers=headers, params=params, timeout=60
+    )
 
     try:
         response.raise_for_status()
