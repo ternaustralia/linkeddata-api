@@ -3,8 +3,10 @@ from typing import Union
 from jinja2 import Template
 
 from linkeddata_api import data
+from linkeddata_api.log_time import log_time
 
 
+@log_time
 def get(
     uri: str,
     sparql_endpoint: str,
@@ -24,20 +26,8 @@ def get(
 
         SELECT DISTINCT ?label
         WHERE {
-            {
-                BIND(<{{ uri }}> as ?uri)
-                VALUES (?labelProperty) {
-                    (skos:prefLabel)
-                    (rdfs:label)
-                    (dcterms:title)
-                    (schema:name)
-                    (sdo:name)
-                    (dcterms:identifier)
-                }
-                ?uri ?labelProperty ?label .
-            }
             {% if uri.startswith('http://linked.data.gov.au/def/tern-cv/') %}
-            UNION {
+            {
                 SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
                     BIND(<{{ uri }}> as ?uri)
                     VALUES (?labelProperty) {
@@ -50,6 +40,19 @@ def get(
                     }
                     ?uri ?labelProperty ?label .
                 }
+            }
+            {% else %}
+            {
+                BIND(<{{ uri }}> as ?uri)
+                VALUES (?labelProperty) {
+                    (skos:prefLabel)
+                    (rdfs:label)
+                    (dcterms:title)
+                    (schema:name)
+                    (sdo:name)
+                    (dcterms:identifier)
+                }
+                ?uri ?labelProperty ?label .
             }
             {% endif %}
         }
@@ -73,6 +76,15 @@ def get(
 def _get_from_list_query(uris: list[str]) -> str:
     # TODO: Currently, we try and fetch from TERN's controlled vocabularies.
     # We may want to also fetch with a SERVICE query from other repositories in the future.
+    tern_cv_uris = [
+        uri for uri in uris if uri.startswith("http://linked.data.gov.au/def/tern-cv/")
+    ]
+    uris = [
+        uri
+        for uri in uris
+        if not uri.startswith("http://linked.data.gov.au/def/tern-cv/")
+    ]
+
     template = Template(
         """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -83,26 +95,16 @@ def _get_from_list_query(uris: list[str]) -> str:
 
         SELECT DISTINCT ?uri ?label
         WHERE {
-            {% for uri in uris %}
             {
                 SELECT DISTINCT ?uri ?label
                 WHERE {
                     {
-                        BIND(<{{ uri }}> as ?uri)
-                        VALUES (?labelProperty) {
-                            (skos:prefLabel)
-                            (rdfs:label)
-                            (dcterms:title)
-                            (schema:name)
-                            (sdo:name)
-                            (dcterms:identifier)
+                        VALUES (?uri) {
+                            {% for uri in uris %}
+                            (<{{ uri }}>)
+                            {% endfor %}
                         }
-                        ?uri ?labelProperty ?label .
-                    }
-                    {% if uri.startswith('http://linked.data.gov.au/def/tern-cv/') %}
-                    UNION {
-                        SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
-                            BIND(<{{ uri }}> as ?uri)
+                        {
                             VALUES (?labelProperty) {
                                 (skos:prefLabel)
                                 (rdfs:label)
@@ -114,19 +116,37 @@ def _get_from_list_query(uris: list[str]) -> str:
                             ?uri ?labelProperty ?label .
                         }
                     }
-                    {% endif %}
                 }
-                LIMIT 1
             }
-            {% if not loop.last %}UNION{% endif %}
-            {% endfor %}
+            UNION {
+                SELECT DISTINCT ?uri ?label
+                WHERE {
+                    VALUES (?uri) {
+                        {% for uri in tern_cv_uris %}
+                        (<{{ uri }}>)
+                        {% endfor %}
+                    }
+                    SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
+                        VALUES (?labelProperty) {
+                            (skos:prefLabel)
+                            (rdfs:label)
+                            (dcterms:title)
+                            (schema:name)
+                            (sdo:name)
+                            (dcterms:identifier)
+                        }
+                        ?uri ?labelProperty ?label .
+                    }
+                }
+            }
         }
     """
     )
-    query = template.render(uris=uris)
+    query = template.render(uris=uris, tern_cv_uris=tern_cv_uris)
     return query
 
 
+@log_time
 def get_from_list(
     uris: list[str],
     sparql_endpoint: str,
