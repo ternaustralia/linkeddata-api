@@ -130,36 +130,29 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
 
     result = data.sparql.post(query, sparql_endpoint).json()
 
-    try:
-        result = _add_rows_for_rdf_list_items(result, uri, sparql_endpoint)
-        label = domain.label.get(uri, sparql_endpoint) or uri
-        types, properties = _get_types_and_properties(result, uri, sparql_endpoint)
+    result = _add_rows_for_rdf_list_items(result, uri, sparql_endpoint)
+    label = domain.label.get(uri, sparql_endpoint) or uri
+    types, properties = _get_types_and_properties(result, uri, sparql_endpoint)
 
-        profile = ""
-        if exists_uri("https://w3id.org/tern/ontologies/tern/MethodCollection", types):
-            profile = "https://w3id.org/tern/ontologies/tern/MethodCollection"
-            properties = method_profile(properties)
-        elif exists_uri("https://w3id.org/tern/ontologies/tern/Method", types):
-            profile = "https://w3id.org/tern/ontologies/tern/Method"
-            properties = method_profile(properties)
+    profile = ""
+    if exists_uri("https://w3id.org/tern/ontologies/tern/MethodCollection", types):
+        profile = "https://w3id.org/tern/ontologies/tern/MethodCollection"
+        properties = method_profile(properties)
+    elif exists_uri("https://w3id.org/tern/ontologies/tern/Method", types):
+        profile = "https://w3id.org/tern/ontologies/tern/Method"
+        properties = method_profile(properties)
 
-        # incoming_properties = _get_incoming_properties(uri, sparql_endpoint)
+    # incoming_properties = _get_incoming_properties(uri, sparql_endpoint)
 
-        return domain.schema.Resource(
-            uri=uri,
-            profile=profile,
-            label=label,
-            types=types,
-            properties=properties,
-            # incoming_properties=incoming_properties,
-            incoming_properties=[],  # TODO:
-        )
-    except data.exceptions.SPARQLNotFoundError as err:
-        raise err
-    except Exception as err:
-        raise data.exceptions.SPARQLResultJSONError(
-            f"Unexpected SPARQL result.\n{result}\n{err}"
-        ) from err
+    return domain.schema.Resource(
+        uri=uri,
+        profile=profile,
+        label=label,
+        types=types,
+        properties=properties,
+        # incoming_properties=incoming_properties,
+        incoming_properties=[],  # TODO:
+    )
 
 
 @log_time
@@ -319,11 +312,12 @@ def _get_types_and_properties(
                 )
 
             found = False
+
             for p in properties:
                 if p.predicate.value == predicate.value:
                     found = True
                     if item not in p.objects:
-                        p.objects.append(item)
+                        p.objects.add(item)
 
             if not found:
                 properties.append(
@@ -341,6 +335,7 @@ def _get_types_and_properties(
     # Sort all property objects by label.
     properties.sort(key=lambda x: x.predicate.label)
     for property_ in properties:
+        property_.objects = list(property_.objects)
         property_.objects.sort(key=sort_property_objects)
 
     return types, properties
