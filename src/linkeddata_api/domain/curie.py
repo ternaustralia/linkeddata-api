@@ -16,6 +16,8 @@ prefixes = {
     "https://w3id.org/tern/ontologies/tern/": "tern",
     "http://www.w3.org/2002/07/owl#": "owl",
     "http://www.w3.org/2001/XMLSchema#": "xsd",
+    "http://rdfs.org/ns/void#": "void",
+    "http://www.w3.org/ns/prov#": "prov",
 }
 
 # Don't find curies for these - speeds up request processing.
