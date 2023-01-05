@@ -1,4 +1,6 @@
 import logging
+from typing import Union
+from collections import defaultdict
 
 from rdflib import RDF
 
@@ -224,7 +226,9 @@ def _get_types_and_properties(
 ) -> tuple[list[domain.schema.URI], list[domain.schema.PredicateObjects]]:
 
     types: list[domain.schema.URI] = []
-    properties: list[domain.schema.PredicateObjects] = []
+    properties: dict[
+        str, set[Union[domain.schema.URI, domain.schema.Literal]]
+    ] = defaultdict(set)
 
     # An index of URIs with label values.
     uri_label_index = _get_uri_label_index(result, uri, sparql_endpoint)
@@ -311,18 +315,14 @@ def _get_types_and_properties(
                     f"Expected type to be uri or literal but got {row['o']['type']}"
                 )
 
-            found = False
+            # Use dict and set for performance
+            properties[predicate].add(item)
 
-            for p in properties:
-                if p.predicate.value == predicate.value:
-                    found = True
-                    if item not in p.objects:
-                        p.objects.add(item)
-
-            if not found:
-                properties.append(
-                    domain.schema.PredicateObjects(predicate=predicate, objects=[item])
-                )
+    # Convert to a list of PredicateObjects
+    properties = [
+        domain.schema.PredicateObjects(predicate=k, objects=v)
+        for k, v in properties.items()
+    ]
 
     # Duplicates may occur due to processing RDF lists.
     # Remove duplicates, if any.
