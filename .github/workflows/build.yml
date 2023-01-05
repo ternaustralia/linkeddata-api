@@ -53,7 +53,7 @@ jobs:
 
       - name: Get git commits since last tag
         id: commitscount
-        run: echo "::set-output name=value::$(git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count)"
+        run: echo "value=$(git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count)" >> $GITHUB_OUTPUT
 
       - name: Get git commit hash
         id: commit-hash
