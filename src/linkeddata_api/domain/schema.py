@@ -46,7 +46,7 @@ class SubjectPredicates(BaseModel):
 
 class PredicateObjects(BaseModel):
     predicate: URI
-    objects: list[Union[URI, Literal]]
+    objects: set[Union[URI, Literal]]
 
 
 class Resource(BaseModel):
