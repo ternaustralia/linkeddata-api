@@ -263,9 +263,7 @@ def _get_types_and_properties(
                 value=row["p"]["value"],
                 internal=uri_internal_index.get(row["p"]["value"], False),
                 list_item=True if row["listItem"]["value"] == "true" else False,
-                list_item_number=int(row["listItemNumber"]["value"])
-                if row["listItem"]["value"] == "true"
-                else None,
+                list_item_number=None
             )
             if row["o"]["type"] == "uri":
                 # object_label = uri_label_index.get(
@@ -319,23 +317,23 @@ def _get_types_and_properties(
             properties[predicate].add(item)
 
     # Convert to a list of PredicateObjects
-    properties = [
+    predicate_objects = [
         domain.schema.PredicateObjects(predicate=k, objects=v)
         for k, v in properties.items()
     ]
 
     # Duplicates may occur due to processing RDF lists.
     # Remove duplicates, if any.
-    for property_ in properties:
+    for property_ in predicate_objects:
         if property_.predicate.list_item:
-            for obj in property_.objects:
+            for obj in property_.objects.copy():
                 if not obj.list_item:
                     property_.objects.remove(obj)
 
     # Sort all property objects by label.
-    properties.sort(key=lambda x: x.predicate.label)
-    for property_ in properties:
+    predicate_objects.sort(key=lambda x: x.predicate.label)
+    for property_ in predicate_objects:
         property_.objects = list(property_.objects)
         property_.objects.sort(key=sort_property_objects)
 
-    return types, properties
+    return types, predicate_objects
