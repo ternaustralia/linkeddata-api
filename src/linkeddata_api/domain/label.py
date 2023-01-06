@@ -30,6 +30,8 @@ def get(
             {
                 SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
                     BIND(<{{ uri }}> as ?uri)
+
+                    # Order from most preferred to least preferred
                     VALUES (?labelProperty) {
                         (skos:prefLabel)
                         (rdfs:label)
@@ -44,6 +46,8 @@ def get(
             {% else %}
             {
                 BIND(<{{ uri }}> as ?uri)
+
+                # Order from most preferred to least preferred
                 VALUES (?labelProperty) {
                     (skos:prefLabel)
                     (rdfs:label)
@@ -105,13 +109,14 @@ def _get_from_list_query(uris: list[str]) -> str:
                             {% endfor %}
                         }
                         {
+                            # Order from least preferred to most preferred
                             VALUES (?labelProperty) {
-                                (skos:prefLabel)
-                                (rdfs:label)
-                                (dcterms:title)
-                                (schema:name)
-                                (sdo:name)
                                 (dcterms:identifier)
+                                (sdo:name)
+                                (schema:name)
+                                (dcterms:title)
+                                (rdfs:label)
+                                (skos:prefLabel)
                             }
                             ?uri ?labelProperty ?label .
                         }
@@ -127,13 +132,14 @@ def _get_from_list_query(uris: list[str]) -> str:
                         {% endfor %}
                     }
                     SERVICE <https://graphdb.tern.org.au/repositories/tern_vocabs_core> {
+                        # Order from least preferred to most preferred
                         VALUES (?labelProperty) {
-                            (skos:prefLabel)
-                            (rdfs:label)
-                            (dcterms:title)
-                            (schema:name)
-                            (sdo:name)
                             (dcterms:identifier)
+                            (sdo:name)
+                            (schema:name)
+                            (dcterms:title)
+                            (rdfs:label)
+                            (skos:prefLabel)
                         }
                         ?uri ?labelProperty ?label .
                     }
