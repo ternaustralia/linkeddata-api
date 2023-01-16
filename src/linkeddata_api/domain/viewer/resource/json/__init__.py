@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Optional, Union
 from collections import defaultdict
 
 from rdflib import RDF
@@ -46,19 +46,23 @@ def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[
 
 @log_time
 def _get_uri_values_and_list_items(
-    result: dict, uri: str, sparql_endpoint: str
+    result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> tuple[list[str], list[str]]:
     uri_values = filter(
         lambda x: x["o"]["type"] == "uri", result["results"]["bindings"]
     )
 
     uri_values = [value["o"]["value"] for value in uri_values]
-    uri_values.append(uri)
+
+    if uri is not None:
+        uri_values.append(uri)
 
     # Replace value of blank node list head with items.
-    list_items = _get_uris_from_rdf_list(
-        uri, result["results"]["bindings"], sparql_endpoint
-    )
+    list_items = []
+    if uri is not None:
+        list_items = _get_uris_from_rdf_list(
+            uri, result["results"]["bindings"], sparql_endpoint
+        )
 
     for row in list_items:
         uri_values.append(row["o"]["value"])
@@ -75,7 +79,7 @@ def _add_rows_for_rdf_list_items(result: dict, uri: str, sparql_endpoint: str) -
     :param sparql_endpoint: SPARQL endpoint to fetch the list items from
     :return: An updated SPARQL result dict object
     """
-    _, list_items = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
+    _, list_items = _get_uri_values_and_list_items(result, sparql_endpoint, uri)
 
     # Add additional rows to the `result` representing the RDF List items.
     for i, list_item in enumerate(list_items):
@@ -100,18 +104,18 @@ def _add_rows_for_rdf_list_items(result: dict, uri: str, sparql_endpoint: str) -
 
 @log_time
 def _get_uri_label_index(
-    result: dict, uri: str, sparql_endpoint: str
+    result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> dict[str, str]:
-    uri_values, _ = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
+    uri_values, _ = _get_uri_values_and_list_items(result, sparql_endpoint, uri)
     uri_label_index = domain.label.get_from_list(uri_values, sparql_endpoint)
     return uri_label_index
 
 
 @log_time
 def _get_uri_internal_index(
-    result: dict, uri: str, sparql_endpoint: str
+    result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> dict[str, str]:
-    uri_values, _ = _get_uri_values_and_list_items(result, uri, sparql_endpoint)
+    uri_values, _ = _get_uri_values_and_list_items(result, sparql_endpoint, uri)
     uri_internal_index = domain.internal_resource.get_from_list(
         uri_values, sparql_endpoint
     )
@@ -135,7 +139,7 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
 
     result = _add_rows_for_rdf_list_items(result, uri, sparql_endpoint)
     label = domain.label.get(uri, sparql_endpoint) or uri
-    types, properties = _get_types_and_properties(result, uri, sparql_endpoint)
+    types, properties = _get_types_and_properties(result, sparql_endpoint, uri)
 
     profile_uri = ""
     ProfileClass = None
@@ -183,8 +187,8 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
         sparql_endpoint,
     ).json()
 
-    uri_label_index = _get_uri_label_index(result, uri, sparql_endpoint)
-    uri_internal_index = _get_uri_internal_index(result, uri, sparql_endpoint)
+    uri_label_index = _get_uri_label_index(result, sparql_endpoint, uri)
+    uri_internal_index = _get_uri_internal_index(result, sparql_endpoint, uri)
 
     incoming_properties = []
 
@@ -229,7 +233,7 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
 
 @log_time
 def _get_types_and_properties(
-    result: dict, uri: str, sparql_endpoint: str
+    result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> tuple[list[domain.schema.URI], list[domain.schema.PredicateObjects]]:
 
     types: list[domain.schema.URI] = []
@@ -238,12 +242,12 @@ def _get_types_and_properties(
     ] = defaultdict(set)
 
     # An index of URIs with label values.
-    uri_label_index = _get_uri_label_index(result, uri, sparql_endpoint)
+    uri_label_index = _get_uri_label_index(result, sparql_endpoint, uri)
 
     # An index of all the URIs linked to and from this resource that are available internally.
-    uri_internal_index = _get_uri_internal_index(result, uri, sparql_endpoint)
+    uri_internal_index = _get_uri_internal_index(result, sparql_endpoint, uri)
 
-    if not uri_internal_index.get(uri):
+    if not uri_internal_index.get(uri) and uri is not None:
         raise data.exceptions.SPARQLNotFoundError(f"Resource with URI {uri} not found.")
 
     for row in result["results"]["bindings"]:

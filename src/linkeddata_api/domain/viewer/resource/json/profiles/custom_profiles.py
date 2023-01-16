@@ -1,8 +1,10 @@
+from jinja2 import Template
 from rdflib import RDFS, SKOS, SDO, DCTERMS
 
+from linkeddata_api.data import sparql
 from linkeddata_api.domain.namespaces import TERN
 from linkeddata_api.domain.viewer.resource.json.profiles import Profile
-from linkeddata_api.domain.schema import PredicateObjects, URI, Literal
+from linkeddata_api.domain.schema import PredicateObjects
 
 
 class MethodCollectionProfile(Profile):
@@ -45,20 +47,62 @@ class MethodProfile(MethodCollectionProfile):
     def _uri(self) -> str:
         return "https://w3id.org/tern/ontologies/tern/Method"
 
+    @staticmethod
+    def _process_sparql_values(results: dict) -> list[PredicateObjects]:
+        from linkeddata_api.domain.viewer.resource.json import _get_types_and_properties
+
+        _, properties = _get_types_and_properties(
+            results,
+            "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+        )
+
+        return properties
+
+    def get_additional_values(self, metadata_predicate: str, predicate: str):
+        query = Template(
+            """
+            PREFIX tern: <https://w3id.org/tern/ontologies/tern/>
+            select *
+            where {
+                ?_observable_property_meta <urn:property:protocolModule> <{{ uri }}> ;
+                    <{{ metadata_predicate }}> ?_object_value .
+                BIND(<{{ predicate }}> AS ?p)
+                BIND(?_object_value AS ?o)
+                BIND(false AS ?listItem)
+                
+                # This gets set later with the listItemNumber value.
+                BIND(0 AS ?listItemNumber)
+            }
+        """
+        ).render(
+            uri=self.resource_uri,
+            metadata_predicate=metadata_predicate,
+            predicate=predicate,
+        )
+
+        response = sparql.post(
+            query=query,
+            sparql_endpoint="https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
+        )
+
+        properties = self._process_sparql_values(response.json())
+
+        self.properties += properties
+
     def add_and_remove(self):
         super().add_and_remove()
-        print("printing from method profile")
-        print("resource uri", self.resource_uri)
-        # Fetch observable properties
-        # Fetch feature types
-        # Fetch categorical values
 
-        predicate = URI(label="hello", value="https://example.com", internal=False)
-        objects = [
-            URI(label="world", value="https://example.com/world", internal=False),
-            Literal(value="Tada, this is a literal!"),
-        ]
+        self.get_additional_values(
+            "urn:property:observableProperty",
+            "https://w3id.org/tern/ontologies/tern/hasObservableProperty",
+        )
 
-        a = PredicateObjects(predicate=predicate, objects=objects)
+        self.get_additional_values(
+            "urn:property:featureType",
+            "https://w3id.org/tern/ontologies/tern/hasFeatureType",
+        )
 
-        self.properties.append(a)
+        self.get_additional_values(
+            "urn:property:categoricalValuesCollection",
+            "https://w3id.org/tern/ontologies/tern/hasCategoricalValuesCollection",
+        )
