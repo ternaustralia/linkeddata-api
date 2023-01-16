@@ -5,8 +5,9 @@ from collections import defaultdict
 from rdflib import RDF
 
 from linkeddata_api import data, domain
-from linkeddata_api.domain.viewer.resource.json.exists_uri import exists_uri
-from linkeddata_api.domain.viewer.resource.json.profiles import method_profile
+from linkeddata_api.domain.viewer.resource.json.profiles import (
+    get_profile,
+)
 from linkeddata_api.domain.viewer.resource.json.sort_property_objects import (
     sort_property_objects,
 )
@@ -136,19 +137,25 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
     label = domain.label.get(uri, sparql_endpoint) or uri
     types, properties = _get_types_and_properties(result, uri, sparql_endpoint)
 
-    profile = ""
-    if exists_uri("https://w3id.org/tern/ontologies/tern/MethodCollection", types):
-        profile = "https://w3id.org/tern/ontologies/tern/MethodCollection"
-        properties = method_profile(properties)
-    elif exists_uri("https://w3id.org/tern/ontologies/tern/Method", types):
-        profile = "https://w3id.org/tern/ontologies/tern/Method"
-        properties = method_profile(properties)
+    profile_uri = ""
+    ProfileClass = None
+    for t in types:
+        ProfileClass = get_profile(t.value)
+
+        if ProfileClass:
+            break
+
+    if ProfileClass:
+        profile = ProfileClass(uri, properties)
+        profile.add_and_remove()
+        properties = profile.properties
+        profile_uri = profile.uri
 
     # incoming_properties = _get_incoming_properties(uri, sparql_endpoint)
 
     return domain.schema.Resource(
         uri=uri,
-        profile=profile,
+        profile=profile_uri,
         label=label,
         types=types,
         properties=properties,
@@ -263,7 +270,7 @@ def _get_types_and_properties(
                 value=row["p"]["value"],
                 internal=uri_internal_index.get(row["p"]["value"], False),
                 list_item=True if row["listItem"]["value"] == "true" else False,
-                list_item_number=None
+                list_item_number=None,
             )
             if row["o"]["type"] == "uri":
                 # object_label = uri_label_index.get(
