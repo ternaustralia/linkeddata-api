@@ -27,6 +27,9 @@ class Profile(metaclass=ABCMeta):
         the referenced lists, 'old_list' and 'new_list'
 
         Returns a copy of the PredicateObjects object, if found, else None.
+
+        Use linkeddata_api.domain.curie.get() to get the label of predicates.
+        Use linkeddata_api.domain.label.get_from_list() to get a dict of labels for the values.
         """
         predicate_object = None
         for property_ in old_list:
