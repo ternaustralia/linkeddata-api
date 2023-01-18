@@ -13,13 +13,7 @@ def get_count(sparql_endpoint: str) -> int:
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX owl: <http://www.w3.org/2002/07/owl#>
-        SELECT
-        (
-            COUNT(
-                *
-            )
-            AS ?count
-        )
+        SELECT (COUNT(*) AS ?count)
         FROM <http://www.ontotext.com/explicit>
         FROM <http://linked.data.gov.au/def/tern-cv/>
         WHERE {
@@ -61,11 +55,11 @@ def get(
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX owl: <http://www.w3.org/2002/07/owl#>
         SELECT
-        ?uri 
-        (SAMPLE(?_label) as ?label)
-        (SAMPLE(?_description) as ?description)
-        (SAMPLE(?_created) as ?created)
-        (SAMPLE(?_modified) as ?modified)
+            ?uri
+            (SAMPLE(?_label) as ?label)
+            (SAMPLE(?_description) as ?description)
+            (SAMPLE(?_created) as ?created)
+            (SAMPLE(?_modified) as ?modified)
         FROM <http://www.ontotext.com/explicit>
         FROM <http://linked.data.gov.au/def/tern-cv/>
         WHERE {
