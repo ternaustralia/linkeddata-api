@@ -13,8 +13,7 @@ def get_count(sparql_endpoint: str) -> int:
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX reg: <http://purl.org/linked-data/registry/>
-        SELECT 
-            (COUNT(*) AS ?count)
+        SELECT (COUNT(*) AS ?count)
         FROM <http://www.ontotext.com/explicit>
         FROM <https://linked.data.gov.au/def/nrm>
         WHERE { 
@@ -29,6 +28,10 @@ def get_count(sparql_endpoint: str) -> int:
             OPTIONAL { ?uri dcterms:description ?_description }
             OPTIONAL { ?uri dcterms:created ?_created }
             OPTIONAL { ?uri dcterms:modified ?_modified }
+
+            FILTER NOT EXISTS {
+                ?uri owl:deprecated true .
+            }
         }
     """
 
@@ -52,10 +55,10 @@ def get(
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX reg: <http://purl.org/linked-data/registry/>
-        SELECT 
+        SELECT
             ?uri 
-            (SAMPLE(?_label) as ?label) 
-            (SAMPLE(?_description) as ?description) 
+            (SAMPLE(?_label) as ?label)
+            (SAMPLE(?_description) as ?description)
             (SAMPLE(?_created) as ?created)
             (SAMPLE(?_modified) as ?modified)
         FROM <http://www.ontotext.com/explicit>
@@ -74,7 +77,9 @@ def get(
             OPTIONAL { ?uri dcterms:modified ?_modified }
         }
         GROUP by ?uri
-        ORDER by ?label 
+        ORDER by ?label
+        LIMIT {{ limit }}
+        OFFSET {{ offset }}
     """
     ).render(limit=20, offset=(page - 1) * limit)
 
