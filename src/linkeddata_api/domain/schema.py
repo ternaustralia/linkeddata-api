@@ -3,14 +3,6 @@ from typing import Union
 from pydantic import BaseModel
 
 
-class Item(BaseModel):
-    id: str
-    label: str
-    description: str = None
-    created: str = None
-    modified: str = None
-
-
 class RDFListItemMixin(BaseModel):
     """An item in an RDF List"""
 
@@ -56,3 +48,19 @@ class Resource(BaseModel):
     types: list[URI]
     properties: list[PredicateObjects]
     incoming_properties: list[SubjectPredicates]
+
+
+class EntrypointItem(BaseModel):
+    id: str
+    label: str
+    description: str = None
+    created: str = None
+    modified: str = None
+
+
+class EntrypointItems(BaseModel):
+    items: list[EntrypointItem]
+    more_pages_exists: bool
+    items_count: int
+    limit: int
+    total_pages: int

@@ -12,12 +12,11 @@ def get_count(sparql_endpoint: str) -> int:
     query = """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX dcterms: <http://purl.org/dc/terms/>
-        PREFIX reg: <http://purl.org/linked-data/registry/>
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
         SELECT (COUNT(*) AS ?count)
         FROM <http://www.ontotext.com/explicit>
-        FROM <https://linked.data.gov.au/def/nrm>
-        WHERE { 
-            <https://linked.data.gov.au/def/nrm> dcterms:hasPart ?uri .
+        FROM <http://linked.data.gov.au/def/tern-cv/>
+        WHERE {
             VALUES (?vocabularyType) {
                 (skos:ConceptScheme)
                 (skos:Collection)
@@ -28,7 +27,7 @@ def get_count(sparql_endpoint: str) -> int:
             OPTIONAL { ?uri dcterms:description ?_description }
             OPTIONAL { ?uri dcterms:created ?_created }
             OPTIONAL { ?uri dcterms:modified ?_modified }
-
+            
             FILTER NOT EXISTS {
                 ?uri owl:deprecated true .
             }
@@ -54,17 +53,16 @@ def get(
         """
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX dcterms: <http://purl.org/dc/terms/>
-        PREFIX reg: <http://purl.org/linked-data/registry/>
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
         SELECT
-            ?uri 
+            ?uri
             (SAMPLE(?_label) as ?label)
             (SAMPLE(?_description) as ?description)
             (SAMPLE(?_created) as ?created)
             (SAMPLE(?_modified) as ?modified)
         FROM <http://www.ontotext.com/explicit>
-        FROM <https://linked.data.gov.au/def/nrm>
-        WHERE { 
-            <https://linked.data.gov.au/def/nrm> dcterms:hasPart ?uri .
+        FROM <http://linked.data.gov.au/def/tern-cv/>
+        WHERE {
             VALUES (?vocabularyType) {
                 (skos:ConceptScheme)
                 (skos:Collection)
@@ -75,6 +73,10 @@ def get(
             OPTIONAL { ?uri dcterms:description ?_description }
             OPTIONAL { ?uri dcterms:created ?_created }
             OPTIONAL { ?uri dcterms:modified ?_modified }
+            
+            FILTER NOT EXISTS {
+                ?uri owl:deprecated true .
+            }
         }
         GROUP by ?uri
         ORDER by ?label
