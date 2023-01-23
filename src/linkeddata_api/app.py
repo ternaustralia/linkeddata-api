@@ -116,10 +116,11 @@ def create_app(config=None) -> Flask:
     app.register_blueprint(oidc_login, url_prefix="/api/oidc")
 
     # register api blueprints
-    from linkeddata_api.views import api_v1, home
+    from linkeddata_api.views import api_v1, api_v2, home
 
     app.register_blueprint(home.bp, url_prefix="/api")
     app.register_blueprint(api_v1.bp, url_prefix="/api/v1.0")
+    app.register_blueprint(api_v2.bp, url_prefix="/api/v2.0")
 
     # setup build_only route so that we can use url_for("root", _external=True) - "root" route required by oidc session login
     # app.add_url_rule("/", "root", build_only=True)

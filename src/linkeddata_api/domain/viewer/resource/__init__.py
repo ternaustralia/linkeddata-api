@@ -9,7 +9,7 @@ from linkeddata_api.data.exceptions import (
 from . import json
 
 
-def _handle_json_response(uri: str, sparql_endpoint: str) -> str:
+def handle_json_response(uri: str, sparql_endpoint: str) -> str:
     try:
         result = json.get(uri, sparql_endpoint)
     except (RequestError, SPARQLNotFoundError, SPARQLResultJSONError) as err:
@@ -18,7 +18,7 @@ def _handle_json_response(uri: str, sparql_endpoint: str) -> str:
     return result.json()
 
 
-def _handle_rdf_response(
+def handle_rdf_response(
     uri: str, sparql_endpoint: str, format_: str, include_incoming_relationships: bool
 ) -> str:
     try:
@@ -56,9 +56,9 @@ def get(
     """
 
     if format_ == "application/json":
-        result = _handle_json_response(uri, sparql_endpoint)
+        result = handle_json_response(uri, sparql_endpoint)
     else:
-        result = _handle_rdf_response(
+        result = handle_rdf_response(
             uri, sparql_endpoint, format_, include_incoming_relationships
         )
     return result

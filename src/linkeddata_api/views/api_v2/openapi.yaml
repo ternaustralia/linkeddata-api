@@ -1,0 +1,439 @@
+openapi: "3.0.3"
+
+info:
+  title: TERN's Linked Data Services API
+  description: A set of web APIs to power TERN's Linked Data Services website.
+  version: "2.0"
+  license:
+    name: Creative Commons 4.0
+    url: https://creativecommons.org/version4
+  termsOfService: https://www.tern.org.au/datalicence/
+  contact:
+    email: esupport@tern.org.au
+    name: TERN eSupport
+    url: https://ternaus.atlassian.net/wiki/spaces/TERNSup/overview
+# servers:
+#   # base path for api
+#   # e.g. swagger ui will be at /api/v1.0/ui/
+#   - url: /api/v1.0
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+    OpenID:
+      type: openIdConnect
+      # TODO: template this url
+      openIdConnectUrl: https://auth-test.tern.org.au/auth/realms/local/.well-known/openid-configuration
+    # TODO: could also define api key via custom header, cookie or url parameter
+    ApiKeyAuth:
+      type: apiKey
+      # TODO: openapi-core validates against hard coded scheme
+      # scheme: apikey-v1
+      # TODO: could also just use BasicAuth auth scheme for apiKey?? -> need to parse basic auth header accordingly to see whether it's user:pw or apikey
+      in: header # can be "header", "query" or "cookie"
+      name: Authorization
+  schemas:
+    EntrypointItemList:
+      title: EntrypointItemList
+      type: array
+      items:
+        title: Entrypoint items
+        type: object
+        properties:
+          id:
+            title: IRI of item
+            type: string
+          label:
+            title: Label of item
+            type: string
+          description:
+            title: The description of the item
+            type: string
+          created:
+            title: The date when the resource was created
+            oneOf:
+              - type: string
+            nullable: true
+          modified: 
+            title: The date when the resource was modified
+            oneOf:
+              - type: string
+            nullable: true
+    Resource:
+      title: Resource
+      type: object
+      properties:
+        uri:
+          type: string
+        label:
+          type: string
+        types:
+          type: array
+          items:
+            $ref: "#/components/schemas/URI"
+        profile:
+          type: string
+        properties:
+          type: array
+          items:
+            $ref: "#/components/schemas/PredicateObjects"
+    ClassItem:
+      title: ClassItem
+      type: object
+      properties:
+        id:
+          title: IRI of class
+          type: string
+        label:
+          title: Label of class
+          type: string
+    URI:
+      title: URI
+      type: object
+      properties:
+        type:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+        internal:
+          type: boolean
+        list_item: 
+          type: boolean
+        list_item_number:
+          oneOf:
+            - type: number
+          nullable: true
+    Literal:
+      title: Literal
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+        datatype:
+          type: string
+        language:
+          type: string
+    PredicateObjects:
+      title: Predicate objects
+      type: object
+      properties:
+        predicate: 
+          type: object
+          $ref: "#/components/schemas/URI"
+        objects:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/URI"
+              - $ref: "#/components/schemas/Literal"
+
+security:
+  - BasicAuth: []
+  - BearerAuth: []
+  # colud define list of scopes here
+  - OpenID: []
+  - ApiKeyAuth: []
+
+paths:
+  /version:
+    get:
+      tags:
+        - General
+      summary: Application version
+      description: Get the application's version
+      responses:
+        "200":
+          description: The application's version.
+          content:
+            plain/text:
+              schema:
+                type: string
+  /viewer/entrypoint/{viewer_id}:
+    get:
+      tags:
+        - Linked Data viewer
+      summary: Get the viewer's entrypoint data
+      parameters:
+        - in: path
+          name: viewer_id
+          schema:
+            type: string
+          required: true
+          examples:
+            nrm:
+              value: nrm
+      responses:
+        "200":
+          description: A list of entrypoint items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntrypointItemList"
+        "404":
+          description: The supplied `viewer_id` value was not found
+        "502":
+          description: Gateway error
+  /viewer/resource:
+    get:
+      tags:
+        - Linked Data viewer
+      summary: Get RDF resource
+      description: Get an RDF resource by its URI in an RDF4J repository.
+      parameters:
+        - in: query
+          name: sparql_endpoint
+          schema: 
+            type: string
+          required: true
+          description: The SPARQL endpoint for querying.
+          examples:
+            nrm_vocabs:
+              summary: NRM vocabs SPARQL endpoint
+              value: https://graphdb.tern.org.au/repositories/dawe_vocabs_core
+        - in: query
+          name: uri
+          schema:
+            type: string
+          required: true
+          description: The URI of the resource.
+          examples:
+            nrm_index:
+              summary: NRM vocab URI
+              value: https://linked.data.gov.au/def/nrm
+            nrm_feature_types:
+              summary: NRM feature types collection
+              value: https://linked.data.gov.au/def/nrm/31a9f83d-9c8b-4d68-8dd7-d1b7a9a4197b
+        - in: query
+          name: format
+          schema:
+            type: string
+          description: The format of the response value. This takes precedence over the request accept header.
+          examples:
+            text/turtle:
+              value: text/turtle
+            application/n-triples:
+              value: application/n-triples
+            application/json:
+              value: application/json
+            application/ld+json:
+              value: application/ld+json
+        - in: query
+          name: include_incoming_relationships
+          schema:
+            type: string
+          description: Include incoming relationships. This defaults to `false` if the `format` query parameter is `application/json`.
+          examples:
+            true:
+              value: true
+            false:
+              value: false
+      responses:
+        "200":
+          description: RDF resource
+          content:
+            application/n-triples:
+              schema:
+                type: string
+            text/turtle:
+              schema:
+                type: string
+            application/ld+json:
+              schema:
+                type: string
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        "400":
+          description: Client error
+        "404":
+          description: Resource of URI not found.
+        "500":
+          description: Internal server error
+        "502":
+          description: Error communicating with the database.
+  /viewer/predicate-values:
+    get:
+      tags:
+        - Linked Data viewer
+      summary: Get RDF resource's predicate values
+      description: Get an RDF resource's values for one of its predicates.
+      parameters:
+        - in: query
+          name: sparql_endpoint
+          schema: 
+            type: string
+          required: true
+          description: The SPARQL endpoint for querying.
+          examples:
+            nrm_vocabs:
+              summary: NRM vocabs SPARQL endpoint
+              value: https://graphdb.tern.org.au/repositories/dawe_vocabs_core
+        - in: query
+          name: uri
+          schema:
+            type: string
+          required: true
+          description: The URI of the resource.
+          examples:
+            nrm_index:
+              summary: NRM vocab URI
+              value: https://linked.data.gov.au/def/nrm
+            nrm_feature_types:
+              summary: NRM feature types collection
+              value: https://linked.data.gov.au/def/nrm/31a9f83d-9c8b-4d68-8dd7-d1b7a9a4197b
+        - in: query
+          name: predicate
+          schema:
+            type: string
+          required: true
+          description: The URI of the resource's predicate
+          examples:
+            skos_member:
+              summary: skos:member
+              value: http://www.w3.org/2004/02/skos/core#member
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The page number for the predicate's values. Defaults to 1.
+      responses:
+        "200":
+          description: RDF resource
+          content:
+            application/n-triples:
+              schema:
+                type: string
+            text/turtle:
+              schema:
+                type: string
+            application/ld+json:
+              schema:
+                type: string
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        "400":
+          description: Client error
+        "404":
+          description: Resource of URI not found.
+        "500":
+          description: Internal server error
+        "502":
+          description: Error communicating with the database.
+
+  /ontology_viewer/classes/flat:
+    get:
+      tags:
+        - Ontology viewer
+      summary: Get a flat list of classes
+      description: Get a flat list of classes ordered by label.
+      parameters:
+        - in: query
+          name: ontology_id
+          schema:
+            type: string
+          required: true
+          description: The ontology ID internally known to the Linked Data API.
+          examples:
+            tern_ontology:
+              summary: Request classes from the TERN Ontology
+              value: tern-ontology
+            unknown_id:
+              summary: An unknown ontology ID
+              value: non-existent-id
+      responses:
+        "200":
+          description: A list of classes ordered by label.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClassItem"
+        "404":
+          description: Unknown ontology ID
+          content:
+            text/plain:
+              schema:
+                type: string
+        "502":
+          description: Gateway error
+  
+  /rdf_tools/convert:
+    post:
+      tags:
+        - RDF Tools
+      summary: Convert from one RDF format to another
+      description: This uses Python's RDFLib to convert.
+      # parameters:
+      #   - in: header
+      #     name: accept
+      #     required: true
+      #     schema:
+      #       type: string
+      #       enum: 
+      #         - text/turtle
+      #         - application/ld+json
+      requestBody:
+        description: The payload data
+        required: true
+        content:
+          application/ld+json:
+            schema:
+              type: string
+              example:
+                "@context":
+                  "name": "http://schema.org/name"
+                  "image":
+                    "@id": "http://schema.org/image"
+                    "@type": "@id"
+                  "homepage":
+                    "@id": "http://schema.org/url"
+                    "@type": "@id"
+                "name": "Manu Sporny"
+                "homepage": "http://manu.sporny.org/"
+                "image": "http://manu.sporny.org/images/manu.png"
+          text/turtle:
+            schema:
+              type: string
+              example: |
+                @prefix ns1: <http://schema.org/> .
+
+                [] ns1:image <http://manu.sporny.org/images/manu.png> ;
+                    ns1:name "Manu Sporny" ;
+                    ns1:url <http://manu.sporny.org/> .
+      responses:
+        "200":
+          description: Convert
+          content:
+            text/turtle:
+              example: |
+                @prefix ns1: <http://schema.org/> .
+
+                [] ns1:image <http://manu.sporny.org/images/manu.png> ;
+                    ns1:name "Manu Sporny" ;
+                    ns1:url <http://manu.sporny.org/> .
+            application/ld+json:
+              schema:
+                type: string
+                example:
+                  "@context":
+                    "name": "http://schema.org/name"
+                    "image":
+                      "@id": "http://schema.org/image"
+                      "@type": "@id"
+                    "homepage":
+                      "@id": "http://schema.org/url"
+                      "@type": "@id"
+                  "name": "Manu Sporny"
+                  "homepage": "http://manu.sporny.org/"
+                  "image": "http://manu.sporny.org/images/manu.png"

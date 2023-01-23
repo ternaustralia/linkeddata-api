@@ -49,9 +49,9 @@ class MethodProfile(MethodCollectionProfile):
 
     @staticmethod
     def _process_sparql_values(results: dict) -> list[PredicateObjects]:
-        from linkeddata_api.domain.viewer.resource.json import _get_types_and_properties
+        from linkeddata_api.domain.viewer.resource.json import get_types_and_properties
 
-        _, properties = _get_types_and_properties(
+        _, properties = get_types_and_properties(
             results,
             "https://graphdb.tern.org.au/repositories/dawe_vocabs_core",
         )
