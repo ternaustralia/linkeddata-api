@@ -18,6 +18,7 @@ def get_resource_predicate_values():
     uri = request.args.get("uri")
     predicate = request.args.get("predicate")
     sparql_endpoint = request.args.get("sparql_endpoint")
+    profile = request.args.get("profile", "")
     page = int(request.args.get("page", 1))
     if page < 1:
         page = 1
@@ -31,7 +32,7 @@ def get_resource_predicate_values():
 
     try:
         result = get_predicate_values(
-            uri, predicate, sparql_endpoint, limit=page_size, page=page
+            uri, predicate, sparql_endpoint, profile, limit=page_size, page=page
         )
     except SPARQLNotFoundError as err:
         abort(404, err.description)

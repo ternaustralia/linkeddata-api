@@ -1,3 +1,4 @@
+from typing import Optional
 from jinja2 import Template
 from rdflib import RDF
 
@@ -6,53 +7,146 @@ from linkeddata_api.data import sparql
 from linkeddata_api.data.exceptions import SPARQLNotFoundError
 
 from .schema import URI, Resource, PredicateValues
+from .profile.base_profile import get_profile
 
 
-def get_predicate_count_index(uri: str, predicate: str, sparql_endpoint: str) -> int:
-    query = Template(
-        """
-        SELECT (COUNT(DISTINCT(?value)) as ?count)
-        WHERE {
-            <{{ uri }}> <{{ predicate }}> ?value .
-        }
-        """
-    ).render(uri=uri, predicate=predicate)
-
-    response = sparql.post(query, sparql_endpoint)
-
-    count = int(response.json()["results"]["bindings"][0]["count"]["value"])
-    return count
-
-
-def get_predicate_values(
-    uri: str, predicate: str, sparql_endpoint: str, limit: int, page: int
-) -> PredicateValues:
+def predicate_is_list_item(uri: str, predicate: str, sparql_endpoint: str) -> bool:
     query = Template(
         """
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-        SELECT ?p ?o ?listItem ?listItemNumber (SAMPLE(?_label) AS ?label)
-        WHERE {
-            BIND(<{{ predicate }}> AS ?p)
-            <{{ uri }}> ?p ?o .
-            
-            OPTIONAL{
-                ?o skos:prefLabel ?_label .
-            }
-            
-            BIND(EXISTS{?o rdf:rest ?rest} as ?listItem)
-
-            # This gets set later with the listItemNumber value.
-            BIND(0 AS ?listItemNumber)
+        ASK {
+            <{{ uri }}> <{{ predicate }}> ?o .
+            ?o rdf:rest ?rest
         }
-        GROUP BY ?p ?o ?listItem ?listItemNumber
-        ORDER BY ?label
-        LIMIT {{ limit }}
-        OFFSET {{ offset }}
     """
-    ).render(uri=uri, predicate=predicate, limit=limit, offset=(page - 1) * limit)
+    ).render(uri=uri, predicate=predicate)
 
-    count = get_predicate_count_index(uri, predicate, sparql_endpoint)
+    response = sparql.post(query, sparql_endpoint)
+    data = response.json()
+
+    return data["boolean"]
+
+
+def get_predicate_count_index(
+    uri: str, predicate: str, sparql_endpoint: str, profile: str
+) -> int:
+    ProfileClass = get_profile(profile)
+
+    if ProfileClass:
+        profile_instance = ProfileClass(uri, [])
+        count = profile_instance.get_predicate_values_count(predicate, sparql_endpoint)
+
+    else:
+        is_list_item = predicate_is_list_item(uri, predicate, sparql_endpoint)
+
+        if is_list_item:
+            query = Template(
+                """
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                SELECT (COUNT(DISTINCT(?value)) as ?count)
+                WHERE {
+                    <{{ uri }}> <{{ predicate }}> ?o .
+                    ?o rdf:rest* ?rest .
+                    ?rest rdf:first ?value
+                }
+            """
+            ).render(uri=uri, predicate=predicate)
+        else:
+            query = Template(
+                """
+                SELECT (COUNT(DISTINCT(?value)) as ?count)
+                WHERE {
+                    <{{ uri }}> <{{ predicate }}> ?value .
+                }
+                """
+            ).render(uri=uri, predicate=predicate)
+
+        response = sparql.post(query, sparql_endpoint)
+
+        count = int(response.json()["results"]["bindings"][0]["count"]["value"])
+
+    return count
+
+
+def get_predicate_values_query(
+    uri: str,
+    predicate: str,
+    sparql_endpoint: str,
+    limit: int,
+    page: int,
+    profile: str = "",
+) -> str:
+    is_list_item = predicate_is_list_item(uri, predicate, sparql_endpoint)
+
+    ProfileClass = get_profile(profile)
+
+    if ProfileClass:
+        profile_instance = ProfileClass(uri, [])
+        query = profile_instance.get_predicate_values(predicate, limit, page)
+    else:
+        if is_list_item:
+            query = Template(
+                """
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+                SELECT ?p ?o ?listItem ?listItemNumber
+                WHERE {
+                    BIND(<{{ predicate }}> AS ?p)
+                    <{{ uri }}> ?p ?_o .
+                    ?_o rdf:rest* ?rest .
+                    ?rest rdf:first ?o
+
+                    BIND(EXISTS{?o rdf:rest ?rest} as ?listItem)
+
+                    # This gets set later with the listItemNumber value.
+                    BIND(0 AS ?listItemNumber)
+                }
+                GROUP BY ?p ?o ?listItem ?listItemNumber
+                LIMIT {{ limit }}
+                OFFSET {{ offset }}
+            """
+            ).render(
+                uri=uri, predicate=predicate, limit=limit, offset=(page - 1) * limit
+            )
+        else:
+            query = Template(
+                """
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+                SELECT ?p ?o ?listItem ?listItemNumber (SAMPLE(?_label) AS ?label)
+                WHERE {
+                    BIND(<{{ predicate }}> AS ?p)
+                    <{{ uri }}> ?p ?o .
+
+                    OPTIONAL{
+                        ?o skos:prefLabel ?_label .
+                    }
+
+                    BIND(EXISTS{?o rdf:rest ?rest} as ?listItem)
+
+                    # This gets set later with the listItemNumber value.
+                    BIND(0 AS ?listItemNumber)
+                }
+                GROUP BY ?p ?o ?listItem ?listItemNumber
+                ORDER BY ?label
+                LIMIT {{ limit }}
+                OFFSET {{ offset }}
+            """
+            ).render(
+                uri=uri, predicate=predicate, limit=limit, offset=(page - 1) * limit
+            )
+
+    return query
+
+
+def get_predicate_values(
+    uri: str, predicate: str, sparql_endpoint: str, profile: str, limit: int, page: int
+) -> PredicateValues:
+
+    count = get_predicate_count_index(uri, predicate, sparql_endpoint, profile)
+    query = get_predicate_values_query(
+        uri, predicate, sparql_endpoint, limit, page, profile
+    )
 
     response = sparql.post(query, sparql_endpoint)
 
@@ -133,7 +227,7 @@ def get_predicate_values(
     return predicate_values.json()
 
 
-def _get_predicates(uri: str, sparql_endpoint: str) -> list[URI]:
+def get_predicates(uri: str, sparql_endpoint: str) -> list[URI]:
     query = Template(
         """
         SELECT DISTINCT ?p
@@ -205,7 +299,30 @@ def json_renderer(uri: str, sparql_endpoint: str) -> Resource:
 
     label = domain.label.get(uri, sparql_endpoint)
     types = _get_types(uri, sparql_endpoint)
-    predicates = _get_predicates(uri, sparql_endpoint)
+    predicates = get_predicates(uri, sparql_endpoint)
     predicates = list(filter(lambda x: x.value != str(RDF.type), predicates))
 
-    return Resource(uri=uri, label=label, types=types, properties=predicates).json()
+    profile_uri = ""
+    ProfileClass = None
+    for t in types:
+        ProfileClass = get_profile(t.value)
+
+        if ProfileClass:
+            break
+
+    if ProfileClass:
+        profile = ProfileClass(uri, predicates)
+        profile.add_and_remove()
+        predicates = profile.properties
+        profile_uri = profile.uri
+
+    return Resource(
+        uri=uri,
+        label=label,
+        types=types,
+        properties=predicates,
+        profile=profile_uri,
+        properties_require_profile=profile.properties_require_profile
+        if ProfileClass
+        else [],
+    ).json()

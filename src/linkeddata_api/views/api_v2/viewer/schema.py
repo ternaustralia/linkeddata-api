@@ -37,6 +37,7 @@ class Resource(BaseModel):
     profile: Union[str, None] = None
     types: list[URI]
     properties: list[URI]
+    properties_require_profile: list[str]
 
 
 class PredicateValues(BaseModel):
