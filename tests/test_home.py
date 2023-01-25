@@ -1,7 +1,5 @@
 import base64
 
-import pytest
-
 
 def test_root(client):
     response = client.get("/")
@@ -14,7 +12,7 @@ def test_home(client):
     assert response.headers["Location"] == "http://localhost/api/"
 
     response = client.get("/api/")
-    assert response.headers["Location"] == "http://localhost/api/v1.0/"
+    assert response.headers["Location"] == "http://localhost/api/v2.0/"
 
 
 def test_whoami_fail(client):

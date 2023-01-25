@@ -10,7 +10,7 @@ def home():
 
     The default API is a OpenAPIBlueprint and will redirect to the included swagger UI.
     """
-    return redirect(url_for("api_v1.api_root", _external=True))
+    return redirect(url_for("api_v2.api_root", _external=True))
 
 
 @bp.route("/whoami")

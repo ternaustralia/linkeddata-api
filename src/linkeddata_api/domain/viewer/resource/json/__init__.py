@@ -11,12 +11,10 @@ from linkeddata_api.domain.viewer.resource.json.profiles import (
 from linkeddata_api.domain.viewer.resource.json.sort_property_objects import (
     sort_property_objects,
 )
-from linkeddata_api.log_time import log_time
 
 logger = logging.getLogger(__name__)
 
 
-@log_time
 def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[str]:
     new_uris = []
     for row in rows:
@@ -44,7 +42,6 @@ def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[
     return new_uris
 
 
-@log_time
 def _get_uri_values_and_list_items(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> tuple[list[str], list[str]]:
@@ -70,7 +67,6 @@ def _get_uri_values_and_list_items(
     return uri_values, list_items
 
 
-@log_time
 def _add_rows_for_rdf_list_items(result: dict, uri: str, sparql_endpoint: str) -> dict:
     """Add rdf:List items as new rows to the SPARQL result object
 
@@ -102,8 +98,7 @@ def _add_rows_for_rdf_list_items(result: dict, uri: str, sparql_endpoint: str) -
     return result
 
 
-@log_time
-def _get_uri_label_index(
+def get_uri_label_index(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> dict[str, str]:
     uri_values, _ = _get_uri_values_and_list_items(result, sparql_endpoint, uri)
@@ -111,8 +106,7 @@ def _get_uri_label_index(
     return uri_label_index
 
 
-@log_time
-def _get_uri_internal_index(
+def get_uri_internal_index(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> dict[str, str]:
     uri_values, _ = _get_uri_values_and_list_items(result, sparql_endpoint, uri)
@@ -122,7 +116,6 @@ def _get_uri_internal_index(
     return uri_internal_index
 
 
-@log_time
 def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
     query = f"""
         SELECT ?p ?o ?listItem ?listItemNumber
@@ -139,7 +132,7 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
 
     result = _add_rows_for_rdf_list_items(result, uri, sparql_endpoint)
     label = domain.label.get(uri, sparql_endpoint) or uri
-    types, properties = _get_types_and_properties(result, sparql_endpoint, uri)
+    types, properties = get_types_and_properties(result, sparql_endpoint, uri)
 
     profile_uri = ""
     ProfileClass = None
@@ -168,7 +161,6 @@ def get(uri: str, sparql_endpoint: str) -> domain.schema.Resource:
     )
 
 
-@log_time
 def _get_incoming_properties(uri: str, sparql_endpoint: str):
     query = f"""
         SELECT ?p ?o ?listItem ?listItemNumber
@@ -187,8 +179,8 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
         sparql_endpoint,
     ).json()
 
-    uri_label_index = _get_uri_label_index(result, sparql_endpoint, uri)
-    uri_internal_index = _get_uri_internal_index(result, sparql_endpoint, uri)
+    uri_label_index = get_uri_label_index(result, sparql_endpoint, uri)
+    uri_internal_index = get_uri_internal_index(result, sparql_endpoint, uri)
 
     incoming_properties = []
 
@@ -231,8 +223,7 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
     return incoming_properties
 
 
-@log_time
-def _get_types_and_properties(
+def get_types_and_properties(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> tuple[list[domain.schema.URI], list[domain.schema.PredicateObjects]]:
 
@@ -242,10 +233,10 @@ def _get_types_and_properties(
     ] = defaultdict(set)
 
     # An index of URIs with label values.
-    uri_label_index = _get_uri_label_index(result, sparql_endpoint, uri)
+    uri_label_index = get_uri_label_index(result, sparql_endpoint, uri)
 
     # An index of all the URIs linked to and from this resource that are available internally.
-    uri_internal_index = _get_uri_internal_index(result, sparql_endpoint, uri)
+    uri_internal_index = get_uri_internal_index(result, sparql_endpoint, uri)
 
     if not uri_internal_index.get(uri) and uri is not None:
         raise data.exceptions.SPARQLNotFoundError(f"Resource with URI {uri} not found.")

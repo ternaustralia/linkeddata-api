@@ -1,10 +1,8 @@
 import requests
 
 from . import exceptions
-from linkeddata_api.log_time import log_time
 
 
-@log_time
 def post(
     query: str, sparql_endpoint: str, accept: str = "application/sparql-results+json"
 ) -> requests.Response:

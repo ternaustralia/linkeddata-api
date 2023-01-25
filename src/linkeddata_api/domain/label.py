@@ -3,10 +3,8 @@ from typing import Union
 from jinja2 import Template
 
 from linkeddata_api import data
-from linkeddata_api.log_time import log_time
 
 
-@log_time
 def get(
     uri: str,
     sparql_endpoint: str,
@@ -152,7 +150,6 @@ def _get_from_list_query(uris: list[str]) -> str:
     return query
 
 
-@log_time
 def get_from_list(
     uris: list[str],
     sparql_endpoint: str,
