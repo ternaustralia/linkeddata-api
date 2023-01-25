@@ -314,7 +314,7 @@ def json_renderer(uri: str, sparql_endpoint: str) -> Resource:
 
     return Resource(
         uri=uri,
-        label=label,
+        label=label or uri,
         types=types,
         properties=predicates,
         profile=profile_uri,
