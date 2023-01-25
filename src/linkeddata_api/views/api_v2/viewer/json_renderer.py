@@ -170,9 +170,6 @@ def get_predicate_values(
             continue
         else:
             if row["o"]["type"] == "uri":
-                # object_label = uri_label_index.get(
-                #     row["o"]["value"]
-                # ) or domain.curie.get(row["o"]["value"])
                 object_label = (
                     uri_label_index.get(row["o"]["value"]) or row["o"]["value"]
                 )
