@@ -24,7 +24,6 @@ class MethodCollectionProfile(Profile):
         # Pop to omit skos:prefLabel property
         new_properties.pop()
 
-        self._add_and_remove_property(str(TERN), properties, new_properties)
         self._add_and_remove_property(str(SDO.url), properties, new_properties)
         self._add_and_remove_property(str(SKOS.memberList), properties, new_properties)
         self._add_and_remove_property(str(TERN.scope), properties, new_properties)
