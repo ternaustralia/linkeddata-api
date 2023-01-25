@@ -1,6 +1,5 @@
 from flask import Response, abort, request
 from flask_tern import openapi
-from pydantic import BaseModel
 
 from linkeddata_api import domain
 from linkeddata_api.domain.viewer.resource import (
