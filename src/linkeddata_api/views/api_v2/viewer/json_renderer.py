@@ -1,4 +1,3 @@
-from typing import Optional
 from jinja2 import Template
 from rdflib import RDF
 
