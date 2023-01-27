@@ -47,6 +47,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          provenance: false
           tags: ${{ steps.metadata.outputs.tags }}
           build-args: |
             LINKEDDATA_API_VERSION=${{ steps.metadata.outputs.version }}
