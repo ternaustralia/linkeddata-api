@@ -93,6 +93,7 @@ jobs:
           # Building for arm requires building wheels, takes too long.
           # platforms: linux/amd64,linux/arm64
           push: true
+          provenance: false
           tags: ${{ env.IMAGE_NAME }}:${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
           build-args: |
             LINKEDDATA_API_VERSION=${{ steps.patch.outputs.patch }}-${{ steps.hash.outputs.value }}
