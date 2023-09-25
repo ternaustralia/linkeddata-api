@@ -76,9 +76,10 @@ def create_app(config=None) -> Flask:
     #################################################################
     # Configure elasticsearch
     #################################################################
-    from flask_tern import elasticsearch
+    # No elastic search required for this project
+    # from flask_tern import elasticsearch
 
-    elasticsearch.init_app(app)
+    # elasticsearch.init_app(app)
 
     ###############################################
     # CORS
