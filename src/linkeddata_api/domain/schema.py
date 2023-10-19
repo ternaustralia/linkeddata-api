@@ -53,9 +53,9 @@ class Resource(BaseModel):
 class EntrypointItem(BaseModel):
     id: str
     label: str
-    description: str = None
-    created: str = None
-    modified: str = None
+    description: str | None = None
+    created: str | None = None
+    modified: str | None = None
 
 
 class EntrypointItems(BaseModel):

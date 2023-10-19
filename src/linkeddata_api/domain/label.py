@@ -78,14 +78,8 @@ def get(
 def _get_from_list_query(uris: list[str]) -> str:
     # TODO: Currently, we try and fetch from TERN's controlled vocabularies.
     # We may want to also fetch with a SERVICE query from other repositories in the future.
-    tern_cv_uris = [
-        uri for uri in uris if uri.startswith("http://linked.data.gov.au/def/tern-cv/")
-    ]
-    uris = [
-        uri
-        for uri in uris
-        if not uri.startswith("http://linked.data.gov.au/def/tern-cv/")
-    ]
+    tern_cv_uris = [uri for uri in uris if uri.startswith("http://linked.data.gov.au/def/tern-cv/")]
+    uris = [uri for uri in uris if not uri.startswith("http://linked.data.gov.au/def/tern-cv/")]
 
     template = Template(
         """
@@ -146,7 +140,11 @@ def _get_from_list_query(uris: list[str]) -> str:
         }
     """
     )
-    query = template.render(uris=uris, tern_cv_uris=tern_cv_uris)
+    # Virtuoso does not allow empty list in VALUES clase, so we fake a useless uri
+    query = template.render(
+        uris=uris if uris else ["https://empty"],
+        tern_cv_uris=tern_cv_uris if tern_cv_uris else ["https://empty"],
+    )
     return query
 
 

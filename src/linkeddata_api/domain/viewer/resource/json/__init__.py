@@ -45,9 +45,7 @@ def _get_uris_from_rdf_list(uri: str, rows: list, sparql_endpoint: str) -> list[
 def _get_uri_values_and_list_items(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> tuple[list[str], list[str]]:
-    uri_values = filter(
-        lambda x: x["o"]["type"] == "uri", result["results"]["bindings"]
-    )
+    uri_values = filter(lambda x: x["o"]["type"] == "uri", result["results"]["bindings"])
 
     uri_values = [value["o"]["value"] for value in uri_values]
 
@@ -57,9 +55,7 @@ def _get_uri_values_and_list_items(
     # Replace value of blank node list head with items.
     list_items = []
     if uri is not None:
-        list_items = _get_uris_from_rdf_list(
-            uri, result["results"]["bindings"], sparql_endpoint
-        )
+        list_items = _get_uris_from_rdf_list(uri, result["results"]["bindings"], sparql_endpoint)
 
     for row in list_items:
         uri_values.append(row["o"]["value"])
@@ -102,7 +98,9 @@ def get_uri_label_index(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> dict[str, str]:
     uri_values, _ = _get_uri_values_and_list_items(result, sparql_endpoint, uri)
-    uri_label_index = domain.label.get_from_list(uri_values, sparql_endpoint)
+    uri_label_index = {}
+    if uri_values:
+        uri_label_index = domain.label.get_from_list(uri_values, sparql_endpoint)
     return uri_label_index
 
 
@@ -110,9 +108,9 @@ def get_uri_internal_index(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> dict[str, str]:
     uri_values, _ = _get_uri_values_and_list_items(result, sparql_endpoint, uri)
-    uri_internal_index = domain.internal_resource.get_from_list(
-        uri_values, sparql_endpoint
-    )
+    uri_internal_index = {}
+    if uri_values:
+        uri_internal_index = domain.internal_resource.get_from_list(uri_values, sparql_endpoint)
     return uri_internal_index
 
 
@@ -226,11 +224,8 @@ def _get_incoming_properties(uri: str, sparql_endpoint: str):
 def get_types_and_properties(
     result: dict, sparql_endpoint: str, uri: Optional[str] = None
 ) -> tuple[list[domain.schema.URI], list[domain.schema.PredicateObjects]]:
-
     types: list[domain.schema.URI] = []
-    properties: dict[
-        str, set[Union[domain.schema.URI, domain.schema.Literal]]
-    ] = defaultdict(set)
+    properties: dict[str, set[Union[domain.schema.URI, domain.schema.Literal]]] = defaultdict(set)
 
     # An index of URIs with label values.
     uri_label_index = get_uri_label_index(result, sparql_endpoint, uri)
@@ -271,9 +266,7 @@ def get_types_and_properties(
                 # object_label = uri_label_index.get(
                 #     row["o"]["value"]
                 # ) or domain.curie.get(row["o"]["value"])
-                object_label = (
-                    uri_label_index.get(row["o"]["value"]) or row["o"]["value"]
-                )
+                object_label = uri_label_index.get(row["o"]["value"]) or row["o"]["value"]
                 item = domain.schema.URI(
                     label=object_label,
                     value=row["o"]["value"],
@@ -311,17 +304,14 @@ def get_types_and_properties(
                 # TODO: Handle blank nodes.
                 pass
             else:
-                raise ValueError(
-                    f"Expected type to be uri or literal but got {row['o']['type']}"
-                )
+                raise ValueError(f"Expected type to be uri or literal but got {row['o']['type']}")
 
             # Use dict and set for performance
             properties[predicate].add(item)
 
     # Convert to a list of PredicateObjects
     predicate_objects = [
-        domain.schema.PredicateObjects(predicate=k, objects=v)
-        for k, v in properties.items()
+        domain.schema.PredicateObjects(predicate=k, objects=v) for k, v in properties.items()
     ]
 
     # Duplicates may occur due to processing RDF lists.
