@@ -23,6 +23,9 @@ def app():
             "OIDC_DISCOVERY_URL": "https://auth.example.com/.well-known/openid-configuration",
             "OIDC_CLIENT_ID": "oidc-test",
             "SESSION_TYPE": "null",
+            "ELASTICSEARCH_URL": "https://es-test.tern.org.au",
+            "ELASTICSEARCH_VERIFY_CERTS": "",
+            "ELASTICSEARCH_SSL_SHOW_WARN": "",
         }
     )
     # setup db

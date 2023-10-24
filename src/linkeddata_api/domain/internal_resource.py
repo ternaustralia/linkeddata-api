@@ -19,7 +19,7 @@ def _get_from_list_query(uris: list[str]) -> str:
         }
     """
     )
-    return template.render(uris=uris)
+    return template.render(uris=uris if uris else ["https://empty"])
 
 
 def get_from_list(
