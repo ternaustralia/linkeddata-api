@@ -26,12 +26,12 @@ class MethodCollectionProfile(Profile):
 
         self._add_and_remove_property(str(SDO.url), properties, new_properties)
         self._add_and_remove_property(str(SKOS.memberList), properties, new_properties)
-        self._add_and_remove_property(str(TERN.scope), properties, new_properties)
-        self._add_and_remove_property(str(SKOS.definition), properties, new_properties)
-        self._add_and_remove_property(str(TERN.purpose), properties, new_properties)
         self._add_and_remove_property(
             str(DCTERMS.description), properties, new_properties
         )
+        self._add_and_remove_property(str(TERN.scope), properties, new_properties)
+        self._add_and_remove_property(str(SKOS.definition), properties, new_properties)
+        self._add_and_remove_property(str(TERN.purpose), properties, new_properties)
         self._add_and_remove_property(str(TERN.equipment), properties, new_properties)
         self._add_and_remove_property(
             str(TERN.instructions), properties, new_properties
