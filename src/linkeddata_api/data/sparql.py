@@ -18,12 +18,19 @@ def post(
     """
     headers = {
         "accept": accept,
-        "content-type": "application/sparql-query",
+        "content-type": "application/x-www-form-urlencoded"
+        if "virtuoso.tern" in sparql_endpoint
+        else "application/sparql-query",
     }
 
-    response = requests.post(
-        url=sparql_endpoint, headers=headers, data=query, timeout=60
-    )
+    if "virtuoso.tern" in sparql_endpoint:
+        response = requests.post(
+            url=sparql_endpoint, headers=headers, params={"query": query}, timeout=60
+        )
+    else:
+        response = requests.post(
+            url=sparql_endpoint, headers=headers, data=query, timeout=60
+        )
 
     try:
         response.raise_for_status()
